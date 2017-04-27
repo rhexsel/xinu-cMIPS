@@ -3,11 +3,11 @@ This is port of Xinu to cMIPS.
 This version of is slightly different from the original cMIPS.  The changes
 are needed to make bearable the time for full-system VHDL simulations.
 
-This port was started by Vanessa B A de Oliveira during 2015-20016.
+This port was started by Vanessa B A de Oliveira during 2015-2016.
 
 --x--
 
-The top leve directory is that of cMIPS.
+The top level directory is that of cMIPS.
 
 The directory xinu holds all the source, configuration and object files.
 
