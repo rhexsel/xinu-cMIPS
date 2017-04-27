@@ -1,0 +1,95 @@
+[*]
+[*] GTKWave Analyzer v3.3.37 (w)1999-2012 BSI
+[*] Tue Apr 25 23:10:43 2017
+[*]
+[dumpfile] "/home/roberto/xinu-cMIPS/cMIPS.vcd"
+[dumpfile_mtime] "Tue Apr 25 23:10:40 2017"
+[dumpfile_size] 164089856
+[savefile] "/home/roberto/xinu-cMIPS/cop0.sav"
+[timestart] 257174200000
+[size] 1412 1018
+[pos] -1 -1
+*-26.000000 257348300000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] u_core.
+[treeopen] u_core.u_alu.
+[sst_width] 210
+[signals_width] 221
+[sst_expanded] 1
+[sst_vpaned_height] 331
+@28
+clk
+@200
+-    fetch
+@22
+u_core.pc[31:0]
+u_core.instr_fetched[31:0]
+@28
+u_core.excp_pcsel[2:0]
+u_core.pcsel[1:0]
+u_core.annul_twice
+u_core.interrupt_taken
+u_core.pipe_stall
+@200
+-    decode, reg fetch
+@22
+u_core.rf_instruction[31:0]
+@24
+u_core.a_rs[4:0]
+u_core.a_rt[4:0]
+u_core.a_rd[4:0]
+@22
+u_core.eq_fwd_a[31:0]
+u_core.eq_fwd_b[31:0]
+@200
+-    exec
+@22
+u_core.alu_inp_a[31:0]
+u_core.alu_inp_b[31:0]
+u_core.result[31:0]
+@24
+u_core.ex_a_c[4:0]
+@22
+u_core.v_addr[31:0]
+@200
+-   COP-0
+@28
+d_buserror
+@24
+u_core.exccode[4:0]
+@22
+u_core.cause[31:0]
+u_core.status[31:0]
+u_core.epc[31:0]
+u_core.badvaddr[31:0]
+u_core.compare[31:0]
+u_core.count[31:0]
+@28
+u_core.count_eq_compare
+@200
+-    memory
+@28
+u_core.b_sel[3:0]
+@22
+u_core.data_inp[31:0]
+u_core.data_out[31:0]
+@23
+d_addr[31:0]
+@28
+cpu_d_aval
+wr
+@24
+u_core.mm_a_c[4:0]
+dev_select[3:0]
+@200
+-    write-back
+@28
+u_core.wb_wreg
+@24
+u_core.wb_a_c[4:0]
+@22
+u_core.wb_c[31:0]
+u_core.wb_cop0_val[31:0]
+@28
+u_core.wb_muxc[2:0]
+[pattern_trace] 1
+[pattern_trace] 0

@@ -1,0 +1,73 @@
+	# mips-as -O0 -EL -mips32 -o start.o start.s
+	.include "cMIPS.s"
+	.text
+	.align 2
+	.extern main
+	.global _start
+	.global _exit
+	.global exit
+	.ent _start
+_start: nop
+	li $k0,0x18000002     # RESET_STATUS, kernel mode, all else disabled
+	li $sp,(x_DATA_BASE_ADDR+x_DATA_MEM_SZ-8)  # initialize SP: memTop-8
+	mtc0 $k0,$12
+	nop
+	jal main
+	nop
+exit:	
+_exit:	nop	     # flush pipeline
+	nop
+	nop
+	nop
+	nop
+	break 0x3ff  # then stop VHDL simulation
+	nop
+	nop
+	.end _start
+
+	
+	.org 0x00000060,0 # exception vector_180 at 0x00000060
+	.global _excp_180
+	.global excp_180
+	.global _excp_200
+	.global excp_200
+	.ent _excp_180
+excp_180:	
+_excp_180:
+excp_200:	
+_excp_200:	
+	eret
+	nop
+end_excp_180:	nop
+	.end _excp_180
+	
+#	.org (end_excp_180 + 0x10),0
+#	.ent _excp_200
+#excp_200:	
+#_excp_200:	
+#	eret
+#	nop
+#	.end _excp_200
+	
+	.globl memcpy
+        .ent memcpy
+	# void *memcpy(void *dest $a0, const void *src $a1, size_t n $a2)
+memcpy:
+	move  $v0, $a0		# return dest
+	andi  $v1, $a2, 0x3	# size MOD 4 == 0 ?
+	bne   $v1, $zero, m_notWd
+m_doit:	blez  $a2, m_done
+	lw    $v1, 0($a1)
+	addiu $a2, $a2, -4
+	addiu $a1, $a1, 4
+	sw    $v1, 0($a0)
+	addiu $a0, $a0, 4
+	j m_doit
+
+m_done:	jr $ra
+m_notWd: nop
+	nop
+	break 0x2ff
+	nop
+	nop
+	.end memcpy

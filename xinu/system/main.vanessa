@@ -1,0 +1,177 @@
+/*  main.c  - main */
+
+#include <xinu.h>
+#include <ramdisk.h>
+
+extern process shell(void);
+
+int fibonacci(int n);
+
+int prA(void);
+int prB(void);
+
+int32 n; // shared variable
+
+#define PROC_VOID FALSE
+
+#if PROC_VOID
+int prod2(void); // sid32, sid32);
+int cons2(void); // sid32, sid32);
+#else
+int prod2(sid32, sid32);
+int cons2(sid32, sid32);
+#endif
+
+sid32 produced, consumed; // shared variable
+
+/************************************************************************/
+/*									*/
+/* main - main program that Xinu runs as the first user process		*/
+/*									*/
+/************************************************************************/
+
+int main(void) {  // int argc, char **argv) {
+
+  int i, j, pl, f, fibo, pid_cons, pid_prod;
+  n = 0;
+
+  consumed = semcreate(0);  //semaphore
+  produced = semcreate(1);
+  kprintf("sem c=%x q(%x)  p=%x q(%x)\n", consumed, semtab[consumed].squeue,
+	  produced, semtab[produced].squeue);
+
+  //create(ender, espaco na pilha, prior, nome, num argumentos)
+
+#if PROC_VOID	
+  if ( (pid_prod = create(prod2, 4096, 20, "prod", 0, NULL)) == SYSERR )
+    kprintf("err cre prod\n");
+
+  if ( (pid_cons = create(cons2, 4096, 20, "cons", 0, NULL)) == SYSERR )
+    kprintf("err cre cons\n");
+#else
+  if ( (pid_prod = create(prod2, 4096, 20, "prod", 2,consumed,produced))
+       == SYSERR )
+    kprintf("err cre prod\n");
+
+  if ( (pid_cons = create(cons2, 4096, 20, "cons", 2,consumed,produced))
+       == SYSERR )
+    kprintf("err cre cons\n");
+#endif
+
+  kprintf("pid cons2=%x prod2=%x\n", pid_cons, pid_prod);
+
+  if ( resume(pid_cons) == SYSERR ) kprintf("err res cons\n");
+  if ( resume(pid_prod) == SYSERR ) kprintf("err res prod\n");
+
+#if 0
+  if ( resume(create(prA, 4096, 50, "pr_A", 0)) == (pri16)SYSERR )
+    kprintf("err res pr_A\n");
+  
+  if ( resume(create(prB, 4096, 50, "pr_B", 0)) == (pri16)SYSERR )
+    kprintf("err res prB\n");
+#endif
+
+#define conv(a) ( ((a) < 10)  ? ((a)+'0') : (((a)+'a')-10) )
+
+  kprintf("*****\n");
+  while (TRUE) {
+    
+    for (i = 1; i < 46; i++) {
+      fibo = fibonacci(i);
+#if 0
+      pl = 28;
+      for(j = 0; j < 8; j++) {
+	f = fibo;
+	f = (f>>pl) & 0xf;
+	to_stdout(conv(f));
+	pl = pl - 4;
+      }
+      to_stdout('\n');
+#endif
+      kprintf("%x\n", fibo);
+    }
+  }
+  return OK;
+}
+
+int fibonacci(int32 n) {
+  int32 i;
+  int32 f1 = 0;
+  int32 f2 = 1;
+  int32 fi = 0;;
+  
+  if (n == 0)
+    return 0;
+  if(n == 1)
+    return 1;
+  
+  for(i = 2 ; i <= n ; i++ ) {
+    fi = f1 + f2;
+    f1 = f2;
+    f2 = fi;
+  }
+  return fi;
+}
+
+
+int prA(){
+  int i = 0;
+  while (i < 5){
+    kprintf("\tpr_A\n");
+    sleep(2);
+    i += 1;
+  }
+  return(i);
+}
+
+int prB(){
+  int i = 0;
+  while (i < 5){
+    kprintf("\tpr_B\n");
+    sleep(3);
+    i += 1;
+  }
+  return(i);
+}
+
+//consumidor2
+#if PROC_VOID
+int cons2(void) {
+#else
+int cons2(sid32 consumed, sid32 produced) {
+#endif
+
+  int32 i;
+  kprintf("\tCons ini\n");
+  for(i=0 ; i<=10 ; i++) {
+    if (wait(produced) != OK) kprintf("\nerr cons w(p)\n\n");
+    // wait(produced);
+    kprintf("\tc n=%x\n", n);
+    if (signal(consumed) != OK) kprintf("\nerr cons s(c)\n\n");
+    // signal(consumed);
+  }
+  kprintf("\tCons terminou!\n");
+  return(i);
+}
+
+//produtor2
+#if PROC_VOID
+int prod2(void) {
+#else
+int prod2(sid32 consumed, sid32 produced) {
+#endif
+  int32 i;
+  kprintf("\tProd ini\n");
+  for(i=0 ; i<10 ; i++) {
+    if (wait(consumed) != OK) kprintf("\nerr prod w(c)\n\n");
+    // wait(consumed);
+    n++;
+    kprintf("\tp n=%x\n", n);
+    // signal(produced);
+    if (signal(produced) != OK) kprintf("\nerr prod s(p)\n\n");
+  }
+  kprintf("\tProd terminou!\n");
+  return(i);
+}
+
+

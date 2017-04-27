@@ -1,0 +1,98 @@
+[*]
+[*] GTKWave Analyzer v3.3.37 (w)1999-2012 BSI
+[*] Fri Nov 13 19:18:31 2015
+[*]
+[dumpfile] "/home/roberto/xinu-cMIPS/v_cMIPS.vcd"
+[dumpfile_mtime] "Fri Nov 13 19:15:55 2015"
+[dumpfile_size] 2599149
+[savefile] "/home/roberto/xinu-cMIPS/pipe.sav"
+[timestart] 3802600000
+[size] 1201 1018
+[pos] 715 0
+*-26.000000 3955600000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] u_core.
+[treeopen] u_core.u_alu.
+[sst_width] 210
+[signals_width] 214
+[sst_expanded] 1
+[sst_vpaned_height] 331
+@28
+clk
+@200
+-    fetch
+@22
+u_core.pc[31:0]
+u_core.instr_fetched[31:0]
+@28
+u_core.pcsel[1:0]
+@22
+u_core.pcincd[31:0]
+u_core.br_target[31:0]
+u_core.j_target[31:0]
+u_core.eq_fwd_a[31:0]
+@200
+-    decode, reg fetch
+@22
+u_core.rf_instruction[31:0]
+u_core.opcode[5:0]
+@24
+u_core.a_rs[4:0]
+u_core.a_rt[4:0]
+u_core.a_rd[4:0]
+u_core.a_c[4:0]
+@22
+u_core.regs_b[31:0]
+@200
+-    exec
+@24
+u_core.u_alu.operation[31:0]
+@22
+u_core.alu_inp_a[31:0]
+u_core.alu_inp_b[31:0]
+u_core.result[31:0]
+@28
+u_core.ovfl
+@24
+u_core.ex_a_c[4:0]
+@23
+u_core.v_addr[31:0]
+@200
+-    memory
+@28
+u_core.b_sel[3:0]
+@22
+u_core.data_inp[31:0]
+u_core.data_out[31:0]
+d_addr[31:0]
+@28
+cpu_d_aval
+wr
+@c00024
+u_core.mm_a_c[4:0]
+@28
+(0)u_core.mm_a_c[4:0]
+(1)u_core.mm_a_c[4:0]
+(2)u_core.mm_a_c[4:0]
+(3)u_core.mm_a_c[4:0]
+(4)u_core.mm_a_c[4:0]
+@1401200
+-group_end
+@200
+-    write-back
+@24
+u_core.wb_muxc[2:0]
+@22
+u_core.wb_rd_data[31:0]
+u_core.wb_result[31:0]
+u_core.wb_a[31:0]
+u_core.wb_pc_p8[31:0]
+u_core.wb_hi[31:0]
+u_core.wb_lo[31:0]
+u_core.wb_cop0_val[31:0]
+u_core.wb_c[31:0]
+@28
+u_core.wb_wreg
+@24
+u_core.wb_a_c[4:0]
+[pattern_trace] 1
+[pattern_trace] 0

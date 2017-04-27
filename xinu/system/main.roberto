@@ -1,0 +1,135 @@
+/*  main.c  - main */
+
+#include <xinu.h>
+#include <ramdisk.h>
+
+extern process shell(void);
+
+int fibonacci(int n);
+
+void prA(void);
+void prB(void);
+
+int n;
+
+void prod(int, int);
+void cons(int, int);
+int produced, consumed;
+
+/************************************************************************/
+/*									*/
+/* main - main program that Xinu runs as the first user process		*/
+/*									*/
+/************************************************************************/
+
+int main(int argc, char **argv)
+{
+  //	int32	retval;
+  //	pid32	netpid;
+  int i;
+  pid32 c,p;
+
+  /***************** create the test ************/
+  //create(enderec, espaco na pilha, prioridade, nome do processo, total de argumentos do processo)
+  // resume(create(prA, 4096, 51, "Processo a", 0));
+  // resume(create(prB, 4096, 50, "Processo b", 0));
+
+
+  consumed = semcreate(1);
+  if ( consumed == SYSERR ) { kprintf("\n\terr semcr c\n\n"); };
+  produced = semcreate(0);
+  if ( produced == SYSERR ) { kprintf("\n\terr semcr p\n\n"); };
+
+  kprintf("\n c %d p %d\n", consumed, produced);
+
+  n = 0;
+
+  //create(enderec, espaco na pilha, prioridade, nome do processo, num args)
+  p = create(prod, 4096, 20, "prod", 2, consumed, produced);
+  if ( p == SYSERR ) { kprintf("\n\terr create p\n\n"); };
+
+  //kprintf("\n Produzido. \n");	
+  c = create(cons, 4096, 20, "cons", 2, consumed, produced);
+  if ( c == SYSERR ) { kprintf("\n\terr create c\n\n"); };
+
+  /********* fim  test ***************/
+
+  /* Use DHCP to obtain: IP and router addresses and subnet mask	*/
+  // lfscreate(TESTDISK, 21, RM_BLKS*RM_BLKSIZ);
+
+
+  kprintf("\n\r*****\n\r");
+
+  resume(p);
+  resume(c);
+
+  while (1 == 1) {
+
+    for ( i=1 ; i < 45 ; i++ ) {
+      kprintf("%d\n", fibonacci(i));
+    }
+    kprintf("\n\n");
+
+  }
+
+  return OK;
+}
+
+int fibonacci(int n) {
+  int i;
+  int f1 = 0;
+  int f2 = 1;
+  int fi = 0;;
+ 
+  if (n == 0)
+    return 0;
+  if(n == 1)
+    return 1;
+ 
+  for(i = 2 ; i <= n ; i++ ) {
+    fi = f1 + f2;
+    f1 = f2;
+    f2 = fi;
+  }
+  return fi;
+}
+
+
+void prA(){
+  while (TRUE){
+    kprintf("\n\tP a\n\n");
+    sleep(2);
+  }
+}
+
+void prB(){
+  while (TRUE){
+    kprintf("\n\tP b\n\n");
+    sleep(3);
+  }
+}
+
+//produtor
+void prod(int consumed, int produced) {
+  int i;
+  for(i = 0; i < 5; i++){
+    if ( wait(consumed) != OK  ) { kprintf("\n\tprod err wait\n\n"); };
+    n++;
+    kprintf("\tp n = %x\n", n);
+    if ( signal(produced) != OK ) { kprintf("\n\tprod err sig\n\n"); };
+    // kprintf("\n\tprod sig\n\n");
+  }
+  kprintf("\n\tprod terminou\n\n");
+}
+
+//consumidor
+void cons(int consumed, int produced) {
+  int i;
+  for(i = 0; i<5; i++){
+    if ( wait(produced) != OK ) { kprintf("\n\tcons err wait\n\n"); };
+    kprintf("\tc n = %x\n", n);
+    if ( signal(consumed) != OK ) { kprintf("\n\tcons err sig\n\n"); };
+    // kprintf("\n\tcons sig\n\n");
+  }
+  kprintf("\n\tcons terminou\n\n");
+}
