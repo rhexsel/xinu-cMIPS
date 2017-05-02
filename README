@@ -1,6 +1,6 @@
 This is port of Xinu to cMIPS.
 
-This version of is slightly different from the original cMIPS.  The changes
+This version of is slightly different from the original XINU.  The changes
 are needed to make bearable the time for full-system VHDL simulations.
 
 This port was started by Vanessa B A de Oliveira during 2015-2016.
