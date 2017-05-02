@@ -340,15 +340,15 @@ dispatch:
 	nop
 	
 handlers_tbl:
-        wait 0x20                 # no request: 000
+        wait 0x18                 # no request: 000
 	nop
 	
-        wait 0x21 # j extCounter  # lowest priority, IRQ5: 001
+        wait 0x19 # j extCounter  # lowest priority, IRQ5: 001
         nop
 
-        wait 0x22 # j UARTinterr  # mid priority, IRQ6: 01x
+        wait 0x1a # j UARTinterr  # mid priority, IRQ6: 01x
         nop
-        wait 0x22 # j UARTinterr
+        wait 0x1a # j UARTinterr
         nop
 
         j clk			  # high priority, IRQ7: 1xx
@@ -414,7 +414,7 @@ dismiss:
 	nop         #  WAIT is decoded and stops simulation before ERET
 	nop         #  had time to execute and return to interrupted instrn.
 	nop
-	wait 0x27   # Should never get to this point.  Abort simulation.
+	wait 0x1c   # Should never get to this point.  Abort simulation.
         .end _excp_0200
         #----------------------------------------------------------------
 
@@ -435,7 +435,7 @@ _excp_BFC0:
         nop
         nop
         nop
-        wait 0xff             # signal exception and abort simulation
+        wait 0x1f             # signal exception and abort simulation
         nop
         .end _excp_BFC0
         ##---------------------------------------------------------------

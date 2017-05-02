@@ -110,7 +110,7 @@ int prB(){
   return(i);
 }
 
-//consumidor2
+//consumidor
 int cons(sid32 consumed, sid32 produced) {
 
   int32 i;
@@ -126,7 +126,7 @@ int cons(sid32 consumed, sid32 produced) {
   return(i);
 }
 
-//produtor2
+//produtor
 int prod(sid32 consumed, sid32 produced) {
   int32 i;
   kprintf("\tprod sta\n");
