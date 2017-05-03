@@ -2,7 +2,7 @@
 #  Makefile for the Xinu operating system.
 #
 
-MIPS_ROOT = /opt/cross/bin
+MIPS_ROOT = /home/soft/linux/mips/cross/bin
 MIPS_PREFIX = mips-
 
 COMPILER_ROOT = ${MIPS_ROOT}/${MIPS_PREFIX}
@@ -10,6 +10,7 @@ COMPILER_ROOT = ${MIPS_ROOT}/${MIPS_PREFIX}
 CC       = ${COMPILER_ROOT}gcc
 LD       = ${COMPILER_ROOT}ld
 OBJCOPY  = ${COMPILER_ROOT}objcopy
+OBJCDUMP = ${COMPILER_ROOT}objdump
 MAKEDEP  = gcc -M -MG
 
 INCLUDE  = -I../include 
@@ -43,17 +44,17 @@ UBOOTOPTS = -A mips -O linux -T kernel -a 0x80010000 -C none -e 0x80010000 -n 'X
 reg_names=-M reg-names=numeric -M cp0-names=numeric
 
 elf:  xinu.elf prog.bin data.bin
-	mips-objdump -z -D -EL ${reg_names} --show-raw-insn \
+	${OBJDUMP} -z -D -EL ${reg_names} --show-raw-insn \
 		--section .text  --section .data \
 		--section .sdata --section .sbss \
 		--section .bss   --section .rodata xinu.elf >ELF
 
 prog.bin: xinu.elf data.bin
-	mips-objcopy -S -j .text -O binary xinu.elf prog.bin
+	${OBJCOPY} -S -j .text -O binary xinu.elf prog.bin
 	mv prog.bin data.bin ../../
 
 data.bin: xinu.elf
-	mips-objcopy -S  -j .excp -j .rodata -j .rodata1 \
+	${OBJCOPY} -S  -j .excp -j .rodata -j .rodata1 \
 		-j .lit8 -j .lit4 -j .data   -j .data1 -j .sdata \
 		-j .sbss -j .bss -O binary xinu.elf data.bin
 
