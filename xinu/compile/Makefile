@@ -10,7 +10,7 @@ COMPILER_ROOT = ${MIPS_ROOT}/${MIPS_PREFIX}
 CC       = ${COMPILER_ROOT}gcc
 LD       = ${COMPILER_ROOT}ld
 OBJCOPY  = ${COMPILER_ROOT}objcopy
-OBJCDUMP = ${COMPILER_ROOT}objdump
+OBJDUMP  = ${COMPILER_ROOT}objdump
 MAKEDEP  = gcc -M -MG
 
 INCLUDE  = -I../include 

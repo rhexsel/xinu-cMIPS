@@ -5,7 +5,7 @@
 CC	= gcc
 LEX	= flex
 YACC	= bison -y	# Flag enables yacc-compatible filenames
-CFLAGS	= 
+CFLAGS	= -Wno-implicit-function-declaration
 LFLAGS	= -lfl
 
 #
@@ -25,6 +25,8 @@ lex.yy.c:	config.l
 		$(LEX) config.l
 
 y.tab.c:	config.y
+		sed -i -e '/size_t..*yyleng/s:// ::' config.y
+		sed -i -e '/int..*yyleng;/s:^:// :'  config.y 
 		$(YACC) config.y
 
 clean:

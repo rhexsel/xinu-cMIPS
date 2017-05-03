@@ -9,8 +9,8 @@
 #include <ctype.h>
 
 extern	char	*yytext;
-// extern	size_t	yyleng;
-extern	int	yyleng;
+extern	size_t	yyleng;
+// // // // extern	int	yyleng;
 
 #define	NIL	(struct dev_ent *)0x00
 
