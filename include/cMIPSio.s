@@ -19,7 +19,7 @@ from_stdin:
 	.set	nomacro
 	li	$2,1006632960			# 0x3c000000
 	lw	$2,64($2)
-	jr	$31
+	j	$31
 	nop
 
 	.set	macro
@@ -40,7 +40,7 @@ to_stdout:
 	.set	nomacro
 	andi	$4,$4,0x00ff
 	li	$2,1006632960			# 0x3c000000
-	jr	$31
+	j	$31
 	sw	$4,32($2)
 
 	.set	macro
@@ -60,7 +60,7 @@ print:
 	.set	noreorder
 	.set	nomacro
 	li	$2,1006632960			# 0x3c000000
-	jr	$31
+	j	$31
 	sw	$4,0($2)
 
 	.set	macro
@@ -89,7 +89,7 @@ readInt:
 	nop
 	sw	$3,0($4)
 $L6:
-	jr	$31
+	j	$31
 	nop
 
 	.set	macro
@@ -109,7 +109,7 @@ writeInt:
 	.set	noreorder
 	.set	nomacro
 	li	$2,1006632960			# 0x3c000000
-	jr	$31
+	j	$31
 	sw	$4,128($2)
 
 	.set	macro
@@ -130,7 +130,7 @@ writeClose:
 	.set	nomacro
 	li	$3,1			# 0x1
 	li	$2,1006632960			# 0x3c000000
-	jr	$31
+	j	$31
 	sw	$3,132($2)
 
 	.set	macro
@@ -151,7 +151,7 @@ dumpRAM:
 	.set	nomacro
 	li	$3,1			# 0x1
 	li	$2,1006632960			# 0x3c000000
-	jr	$31
+	j	$31
 	sb	$3,135($2)
 
 	.set	macro
@@ -170,7 +170,7 @@ readStats:
 	.fmask	0x00000000,0
 	.set	noreorder
 	.set	nomacro
-	jr	$31
+	j	$31
 	nop
 
 	.set	macro
@@ -178,103 +178,86 @@ readStats:
 	.end	readStats
 	.size	readStats, .-readStats
 	.align	2
-	.globl	memcpy
+	.globl	my_memcpy
 	.set	nomips16
 	.set	nomicromips
-	.ent	memcpy
-	.type	memcpy, @function
-memcpy:
+	.ent	my_memcpy
+	.type	my_memcpy, @function
+my_memcpy:
 	.frame	$sp,0,$31		# vars= 0, regs= 0/0, args= 0, gp= 0
 	.mask	0x00000000,0
 	.fmask	0x00000000,0
 	.set	noreorder
 	.set	nomacro
-	li	$7,-2147483648			# 0xffffffff80000000
-	addiu	$7,$7,3
-	and	$7,$5,$7
-	bltz	$7,$L30
+	li	$3,-2147483648			# 0xffffffff80000000
+	addiu	$3,$3,3
+	and	$3,$5,$3
+	bgez	$3,$L12
 	move	$2,$4
 
+	addiu	$3,$3,-1
+	li	$4,-4			# 0xfffffffffffffffc
+	or	$3,$3,$4
+	addiu	$3,$3,1
 $L12:
-	blez	$7,$L24
-	move	$3,$2
+	blez	$3,$L25
+	slt	$4,$6,4
 
-	blez	$6,$L14
-	addu	$7,$2,$7
+	blez	$6,$L33
+	move	$7,$2
 
-	move	$3,$2
-$L15:
+	addu	$3,$2,$3
+$L18:
 	lb	$8,0($5)
 	nop
-	sb	$8,0($3)
+	sb	$8,0($7)
 	addiu	$6,$6,-1
-	addiu	$3,$3,1
-	beq	$3,$7,$L13
+	addiu	$7,$7,1
+	bne	$7,$3,$L15
 	addiu	$5,$5,1
 
-	bne	$6,$0,$L15
-	nop
-
-$L33:
-	jr	$31
-	nop
-
-$L30:
-	addiu	$7,$7,-1
-	li	$3,-4			# 0xfffffffffffffffc
-	or	$7,$7,$3
-	b	$L12
-	addiu	$7,$7,1
-
-$L24:
-$L13:
+	b	$L31
 	slt	$4,$6,4
-	beq	$4,$0,$L31
+
+$L25:
+	move	$3,$2
+$L31:
+	beq	$4,$0,$L32
 	andi	$7,$3,0x3
 
-$L17:
-	blez	$6,$L33
-	addu	$6,$3,$6
-
-$L22:
-	lb	$7,0($5)
-	nop
-	sb	$7,0($3)
-	addiu	$3,$3,1
-	bne	$6,$3,$L22
-	addiu	$5,$5,1
-
-	jr	$31
+	b	$L17
 	nop
 
-$L18:
+$L15:
+	bne	$6,$0,$L18
+	nop
+
+$L35:
+	j	$31
+	nop
+
+$L23:
+	andi	$7,$3,0x3
+$L32:
 	bne	$7,$0,$L20
+	andi	$7,$3,0x1
+
+	lw	$7,0($5)
+	b	$L21
+	sw	$7,0($3)
+
+$L20:
+	bne	$7,$0,$L22
 	nop
 
 	lh	$7,0($5)
 	nop
 	sh	$7,0($3)
 	lh	$7,2($5)
-	nop
+	b	$L21
 	sh	$7,2($3)
-$L19:
-	addiu	$6,$6,-4
-	addiu	$5,$5,4
-	slt	$7,$6,4
-	bne	$7,$0,$L17
-	addiu	$3,$3,4
 
-$L21:
-	andi	$7,$3,0x3
-$L31:
-	bne	$7,$0,$L18
-	andi	$7,$3,0x1
-
-	lw	$7,0($5)
-	b	$L19
-	sw	$7,0($3)
-
-$L20:
+$L22:
 	lb	$7,0($5)
 	nop
 	sb	$7,0($3)
@@ -282,117 +265,134 @@ $L20:
 	nop
 	sh	$7,1($3)
 	lb	$7,3($5)
-	b	$L19
+	nop
 	sb	$7,3($3)
+$L21:
+	addiu	$6,$6,-4
+	addiu	$5,$5,4
+	slt	$7,$6,4
+	beq	$7,$0,$L23
+	addiu	$3,$3,4
 
-$L14:
-	slt	$4,$6,4
-	beq	$4,$0,$L21
+$L17:
+	blez	$6,$L35
+	addu	$6,$3,$6
+
+$L24:
+	lb	$7,0($5)
+	nop
+	sb	$7,0($3)
+	addiu	$3,$3,1
+	bne	$6,$3,$L24
+	addiu	$5,$5,1
+
+	j	$31
+	nop
+
+$L33:
+	beq	$4,$0,$L23
 	move	$3,$2
 
-	jr	$31
+	j	$31
 	nop
 
 	.set	macro
 	.set	reorder
-	.end	memcpy
-	.size	memcpy, .-memcpy
+	.end	my_memcpy
+	.size	my_memcpy, .-my_memcpy
 	.align	2
-	.globl	memset
+	.globl	my_memset
 	.set	nomips16
 	.set	nomicromips
-	.ent	memset
-	.type	memset, @function
-memset:
+	.ent	my_memset
+	.type	my_memset, @function
+my_memset:
 	.frame	$sp,0,$31		# vars= 0, regs= 0/0, args= 0, gp= 0
 	.mask	0x00000000,0
 	.fmask	0x00000000,0
 	.set	noreorder
 	.set	nomacro
-	li	$7,-2147483648			# 0xffffffff80000000
-	addiu	$7,$7,3
-	and	$7,$4,$7
-	bltz	$7,$L50
+	li	$3,-2147483648			# 0xffffffff80000000
+	addiu	$3,$3,3
+	and	$3,$4,$3
+	bgez	$3,$L37
 	move	$2,$4
 
-$L35:
-	blez	$7,$L44
-	move	$3,$2
-
-	blez	$6,$L37
-	addu	$7,$2,$7
-
-	move	$3,$2
-$L38:
-	sb	$5,0($3)
+	addiu	$3,$3,-1
+	li	$4,-4			# 0xfffffffffffffffc
+	or	$3,$3,$4
 	addiu	$3,$3,1
-	beq	$3,$7,$L36
+$L37:
+	blez	$3,$L46
+	nop
+
+	blez	$6,$L39
+	move	$7,$2
+
+	addu	$3,$2,$3
+$L40:
+	sb	$5,0($7)
+	addiu	$7,$7,1
+	beq	$7,$3,$L38
 	addiu	$6,$6,-1
 
-	bne	$6,$0,$L38
+	bne	$6,$0,$L40
 	nop
 
-$L52:
-	jr	$31
+$L53:
+	j	$31
 	nop
 
-$L50:
-	addiu	$7,$7,-1
-	li	$3,-4			# 0xfffffffffffffffc
-	or	$7,$7,$3
-	b	$L35
-	addiu	$7,$7,1
-
-$L44:
-$L36:
-	sll	$8,$5,8
-	sll	$4,$5,16
-	or	$8,$8,$4
-	or	$8,$8,$5
-	sll	$4,$5,24
-	or	$8,$8,$4
+$L46:
+	move	$3,$2
+$L38:
+	sll	$7,$5,8
+	sll	$8,$5,16
+	or	$8,$7,$8
+	or	$7,$8,$5
+	sll	$8,$5,24
 	slt	$4,$6,4
-	bne	$4,$0,$L40
-	nop
+	bne	$4,$0,$L42
+	or	$8,$7,$8
 
-$L41:
+$L43:
 	sw	$8,0($3)
 	addiu	$6,$6,-4
 	slt	$7,$6,4
-	beq	$7,$0,$L41
+	beq	$7,$0,$L43
 	addiu	$3,$3,4
 
-$L40:
-	blez	$6,$L52
+$L42:
+	blez	$6,$L53
 	addu	$6,$3,$6
 
-$L42:
+$L44:
 	sb	$5,0($3)
 	addiu	$3,$3,1
-	bne	$6,$3,$L42
+	bne	$6,$3,$L44
 	nop
 
-	jr	$31
+	j	$31
 	nop
 
-$L37:
-	sll	$8,$5,16
-	sll	$3,$5,8
-	or	$8,$8,$3
-	or	$8,$8,$5
-	sll	$3,$5,24
-	or	$8,$8,$3
+$L39:
+	sll	$3,$5,16
+	sll	$4,$5,8
+	or	$3,$3,$4
+	or	$3,$3,$5
+	sll	$8,$5,24
+	or	$8,$3,$8
 	slt	$4,$6,4
-	beq	$4,$0,$L41
+	beq	$4,$0,$L43
 	move	$3,$2
 
-	jr	$31
+	j	$31
 	nop
 
 	.set	macro
 	.set	reorder
-	.end	memset
-	.size	memset, .-memset
+	.end	my_memset
+	.size	my_memset, .-my_memset
 	.align	2
 	.globl	startCounter
 	.set	nomips16
@@ -405,19 +405,20 @@ startCounter:
 	.fmask	0x00000000,0
 	.set	noreorder
 	.set	nomacro
-	beq	$5,$0,$L55
-	li	$2,1073676288			# 0x3fff0000
+	bne	$5,$0,$L55
+	li	$3,-2147483648			# 0xffffffff80000000
 
-	li	$5,-2147483648			# 0xffffffff80000000
+	move	$3,$0
 $L55:
+	li	$2,1073676288			# 0x3fff0000
 	ori	$2,$2,0xffff
 	and	$4,$4,$2
 	li	$2,1073741824			# 0x40000000
 	or	$4,$4,$2
-	or	$5,$4,$5
+	or	$4,$4,$3
 	li	$2,1006632960			# 0x3c000000
-	jr	$31
-	sw	$5,160($2)
+	j	$31
+	sw	$4,160($2)
 
 	.set	macro
 	.set	reorder
@@ -436,11 +437,11 @@ stopCounter:
 	.set	noreorder
 	.set	nomacro
 	li	$4,1006632960			# 0x3c000000
-	lw	$2,160($4)
-	li	$3,-1073807360			# 0xffffffffbfff0000
-	ori	$3,$3,0xffff
-	and	$2,$2,$3
-	jr	$31
+	lw	$3,160($4)
+	li	$2,-1073807360			# 0xffffffffbfff0000
+	ori	$2,$2,0xffff
+	and	$2,$3,$2
+	j	$31
 	sw	$2,160($4)
 
 	.set	macro
@@ -461,11 +462,11 @@ readCounter:
 	.set	nomacro
 	li	$2,1006632960			# 0x3c000000
 	lw	$2,160($2)
-	jr	$31
+	j	$31
 	nop
 
 	.set	macro
 	.set	reorder
 	.end	readCounter
 	.size	readCounter, .-readCounter
-	.ident	"GCC: (GNU) 6.3.0"
+	.ident	"GCC: (GNU) 5.1.0"

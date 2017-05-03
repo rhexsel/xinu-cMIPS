@@ -47,8 +47,8 @@ extern int  print_sp(void);
 extern int  print_status(void);
 extern int  print_cause(void);
 
-// extern char *memcpy(char*, const char*, int);
-// extern char *memset(char*, const int, int);
+extern char *my_memcpy(char*, const char*, int);
+extern char *my_memset(char*, const int, int);
 
 // external counter (peripheral)
 extern void startCounter(int, int);

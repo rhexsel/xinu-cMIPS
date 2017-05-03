@@ -100,7 +100,7 @@ void readStats(sStats *s) {
 //=======================================================================
 // memcpy -- need this to fool GCC into believing we have libc
 //=======================================================================
-char *memcpy(char *dst, const char *src, int n) {
+char *my_memcpy(char *dst, const char *src, int n) {
   int cnt;
   char *ret;
 
@@ -135,7 +135,7 @@ char *memcpy(char *dst, const char *src, int n) {
 //=======================================================================
 // memset -- need this to fool GCC into believing we have libc
 //=======================================================================
-char *memset(char *dst, const int val, int len) {
+char *my_memset(char *dst, const int val, int len) {
   unsigned char *ptr = (unsigned char*)dst;
   int cnt;
 

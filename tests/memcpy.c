@@ -36,7 +36,7 @@ int main(void) {
     N=j; 
     s=src;
     d=dst;
-    vet = memcpy(d, s, N);
+    vet = my_memcpy(d, s, N);
     //#ifdef cMIPS
     for (i=0; i<N; i++) { to_stdout(vet[i]); } ; to_stdout('\n');
     //#else
@@ -52,7 +52,7 @@ int main(void) {
   for (j=1; j<=15; j++) {
     N=j; 
     d=dst;
-    vet = memset(d, (char)('c'+j), N);
+    vet = my_memset(d, (char)('c'+j), N);
     //#ifdef cMIPS
     for (i=0; i<N; i++) { to_stdout(vet[i]); } ; to_stdout('\n');
     //#else
