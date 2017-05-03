@@ -2,7 +2,12 @@
 #  Makefile for the Xinu operating system.
 #
 
-MIPS_ROOT = /home/soft/linux/mips/cross/bin
+# MIPS_ROOT = /home/soft/linux/mips/cross/bin
+
+MIPS_ROOT := $(shell if [ -x /opt/cross/bin/mips-gcc ] ;\
+			then echo /opt/cross/bin ;\
+			else echo /home/soft/linux/mips/cross/bin ; fi)
+
 MIPS_PREFIX = mips-
 
 COMPILER_ROOT = ${MIPS_ROOT}/${MIPS_PREFIX}
