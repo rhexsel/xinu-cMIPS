@@ -160,7 +160,8 @@ static int _innum(int **ptr, int type, int len, int size,
     register char *np;
     char numbuf[64];
     register char c, base;
-    int expseen, negflg, c1, ndigit;
+    int negflg, c1, ndigit;
+    // int expseen, negflg, c1, ndigit;
     long lcval;
 
     if (type == 'c' || type == 's' || type == '[')

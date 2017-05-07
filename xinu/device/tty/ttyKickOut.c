@@ -12,10 +12,17 @@ void	ttyKickOut(
 	 struct uart_csreg *uptr	/* address of UART's CSRs	*/
 	)
 {
-	/* Set output interrupts on the UART, which causes */
-	/*   the device to generate an output interrupt    */
-/*********************
-        uptr->ier = UART_IER_ERBFI | UART_IER_ETBEI | UART_IER_ELSI;
-**********************/
-	return;
+  Tcontrol c;
+
+  /* Set output interrupts on the UART, which causes */
+  /*   the device to generate an output interrupt    */
+  
+  c.rts   = 1;
+  c.intTX = 1;
+  c.intRX = 1;
+  c.speed = UART_SPEED;
+
+  uptr->ctl = c;
+  
+  return;
 }

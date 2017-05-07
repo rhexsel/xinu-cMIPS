@@ -346,9 +346,9 @@ handlers_tbl:
         wait 0x19 # j extCounter  # lowest priority, IRQ5: 001
         nop
 
-        wait 0x1a # j UARTinterr  # mid priority, IRQ6: 01x
+        j uart                    # mid priority, IRQ6: 01x
         nop
-        wait 0x1a # j UARTinterr
+        j uart
         nop
 
         j clk			  # high priority, IRQ7: 1xx
@@ -358,6 +358,11 @@ handlers_tbl:
         j clk
 	nop
         j clk
+	nop
+
+uart:	jal UARThandler
+	nop
+	j   restore
 	nop
 	
 clk:	jal clkhandler		  # clk handler MUST return to this address

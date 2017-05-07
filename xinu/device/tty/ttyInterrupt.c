@@ -8,74 +8,47 @@
  */
 interrupt ttyInterrupt(void)
 {
-	struct	dentry	*devptr;	/* pointer to devtab entry	*/
-	struct	ttycblk	*typtr;		/* pointer to ttytab entry	*/	
-	struct	uart_csreg *uptr;	/* address of UART's CSRs	*/
-	int32	iir = 0;		/* interrupt identification	*/
-	// int32	lsr = 0;		/* line status			*/
+  struct	dentry	*devptr;	/* pointer to devtab entry	*/
+  struct	ttycblk	*typtr;		/* pointer to ttytab entry	*/	
+  struct	uart_csreg *uptr;	/* address of UART's CSRs	*/
+  Tstatus	iir;	                /* interrupt identification	*/
+  // int32	lsr = 0;	/* line status			*/
 
-	/* For now, the CONSOLE is the only serial device */
+  /* For now, the CONSOLE is the only serial device */
 
-	devptr = (struct dentry *)&devtab[CONSOLE];
+  devptr = (struct dentry *)&devtab[CONSOLE];
 
-	/* Obtain the CSR address for the UART */
+  /* Obtain the CSR address for the UART */
 
-	uptr = (struct uart_csreg *)devptr->dvcsr;
+  uptr = (struct uart_csreg *)devptr->dvcsr;
 
-	/* Obtain a pointer to the tty control block */
+  /* Obtain a pointer to the tty control block */
 
-	typtr = &ttytab[ devptr->dvminor ];
+  typtr = &ttytab[ devptr->dvminor ];
 
-	/* Decode hardware interrupt request from UART device */
+  /* Decode hardware interrupt request from UART device */
 
-        /* Check interrupt identification register */
+  /* Check interrupt identification register */
 
-        iir = uptr->iir;
-        if (iir & UART_IIR_IRQ) {
-		return;
-        }
+  iir = uptr->stat;
 
-	/* Decode the interrupt cause based upon the value extracted	*/
-	/* from the UART interrupt identification register.  Clear	*/
-	/* the interrupt source and perform the appropriate handling	*/
-	/* to coordinate with the upper half of the driver		*/
+  /* Decode the interrupt cause based upon the value extracted	*/
+  /* from the UART interrupt identification register.  Clear	*/
+  /* the interrupt source and perform the appropriate handling	*/
+  /* to coordinate with the upper half of the driver		*/
 
-        iir &= UART_IIR_IDMASK;		/* Mask off the interrupt ID */
-        switch (iir) {
+  // Receiver data available
+  if ( iir.rxFull != 0 ) {
+    uptr->interr.clrRX = 1;    // clear interrupt request
+    ttyInter_in(typtr, uptr);  // get new char
+  }
 
-	    /* Receiver line status interrupt (error) */
+  // Transmitter output FIFO is empty (i.e., ready for more)	*/
+  if ( iir.txEmpty != 0 ) {
+    uptr->interr.clrTX = 1;    // clear interrupt request
+    ttyInter_out(typtr, uptr);
+  }
 
-	    //case UART_IIR_RLSI:
-	  //	lsr = uptr->lsr;
-	  //	return;
+  return;
 
-	    /* Receiver data available or timed out */
-
-	    case UART_IIR_RDA:
-	    case UART_IIR_RTO:
-
-		sched_cntl(DEFER_START);
-
-		/* For each char in UART buffer, call ttyInter_in */
-
-		//while (uptr->lsr & UART_LSR_DR) { /* while chars avail */
-		//	ttyInter_in(typtr, uptr);
-                //}  *************** ver equivalente pro cmips
-
-		sched_cntl(DEFER_STOP);
-
-		return;
-
-            /* Transmitter output FIFO is empty (i.e., ready for more)	*/
-
-	    case UART_IIR_THRE:
-	      //lsr = uptr->lsr;  /* Read from LSR to clear interrupt */
-	      ttyInter_out(typtr, uptr);
-	      return;   //*************** ver equivalente pro cmips
-
-	    /* Modem status change (simply ignore) */
-
-	    case UART_IIR_MSC:
-		return;
-	    }
 }
