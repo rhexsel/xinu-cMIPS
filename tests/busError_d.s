@@ -13,7 +13,7 @@ _start: nop
 
         ## set STATUS, cop0, no interrupts enabled, user mode
         li   $k0, 0x10000010
-        mtc0 $k0, cop0_STATUS
+        mtc0 $k0, c0_status
 
 	j    main
         nop
@@ -37,7 +37,7 @@ _exit:	nop	# flush pipeline
         .org x_EXCEPTION_0000,0
 _excp_0000:
         la   $k0, x_IO_BASE_ADDR
-        mfc0 $k1, cop0_CAUSE
+        mfc0 $k1, c0_cause
         sw   $k1, 0($k0)        # print CAUSE, flush pipe and stop simulation
         nop
         nop
@@ -47,7 +47,7 @@ _excp_0000:
         .org x_EXCEPTION_0100,0
 _excp_0100:
         la   $k0, x_IO_BASE_ADDR
-        mfc0 $k1, cop0_CAUSE
+        mfc0 $k1, c0_cause
         sw   $k1, 0($k0)        # print CAUSE, flush pipe and stop simulation
         nop
         nop
@@ -64,14 +64,14 @@ _excp_0100:
 excp_180:
         li   $k0, '\n'
         sw   $k0, x_IO_ADDR_RANGE($14)
-        mfc0 $k0, cop0_CAUSE
-	# andi $k0, $k0, 0x003f	# mask off cause of exception
+        mfc0 $k0, c0_cause
+	# andi $k0, $k0, 0x007f	# mask off cause of exception
 	sw   $k0, 0($14)        # print CAUSE
         li   $k0, '\n'
         sw   $k0, x_IO_ADDR_RANGE($14)
 
 	li   $k0, 0x10000010	# clear status of exception
-        mtc0 $k0, cop0_STATUS
+        mtc0 $k0, c0_status
 	
 	j    apocalipse 	# and print a message
 	nop
@@ -83,7 +83,7 @@ excp_180:
         .org x_EXCEPTION_0200,0
 _excp_0200:
         la   $k0, x_IO_BASE_ADDR
-        mfc0 $k1, cop0_CAUSE
+        mfc0 $k1, c0_cause
         sw   $k1, 0($k0)        # print CAUSE, flush pipe and stop simulation
         nop
         nop
@@ -94,7 +94,7 @@ _excp_0200:
         .org x_EXCEPTION_BFC0,0
 _excp_BFC0:
         la   $k0, x_IO_BASE_ADDR
-        mfc0 $k1, cop0_CAUSE
+        mfc0 $k1, c0_cause
         sw   $k1, 0($k0)        # print CAUSE, flush pipe and stop simulation
         nop
         nop
@@ -119,19 +119,19 @@ main:	la $14, x_IO_BASE_ADDR  # used by handler
 	# sw $2, 0($14)
 	
 	li   $8, (ram_displ & 0xfffff000) # keep VPN2
-	mtc0 $8, cop0_EntryHi
+	mtc0 $8, c0_entryhi
 	# sw   $8, 0($14)
 	
 	li   $6, ( ((ram_displ >>12) <<6) | 0b000111 ) # PPN0
-	mtc0 $6, cop0_EntryLo0
+	mtc0 $6, c0_entrylo0
         # sw   $6, 0($14)
 
 	li   $7, ( (((ram_displ+4096) >>12) <<6) | 0b000111 ) # PPN1
-        mtc0 $7, cop0_EntryLo1
+        mtc0 $7, c0_entrylo1
         # sw   $7, 0($14)
 
         li   $5, 7           # read TLB(7)
-        mtc0 $5, cop0_Index
+        mtc0 $5, c0_index
 	ehb
         tlbwi
 	
