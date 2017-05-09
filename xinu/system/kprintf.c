@@ -53,25 +53,28 @@ syscall kputc(byte c)
  */
 syscall kgetc(void)
 {
-    int irmask;
-    volatile struct uart_csreg *regptr;
-    byte c;
-	struct	dentry	*devptr;
+  volatile struct uart_csreg *regptr;
+  byte c;
+  struct	dentry	*devptr;
+  Tcontrol irmask, off;
 
-	devptr = (struct dentry *) &devtab[CONSOLE];
-    regptr = (struct uart_csreg *)devptr->dvcsr;
+  devptr = (struct dentry *) &devtab[CONSOLE];
+  regptr = (struct uart_csreg *)devptr->dvcsr;
 
-    irmask = regptr->ier;       /* Save UART interrupt state.   */
-    regptr->ier = 0;            /* Disable UART interrupts.     */
+  irmask = regptr->ctl;         /* Save UART interrupt state.   */
+  off = irmask;
+  off.intTX = 0;
+  off.intRX = 0;
+  regptr->ctl = off;            /* Disable UART interrupts.     */
 
-    //while (0 == (regptr->lsr & UART_LSR_DR))
-    //{                            Do Nothing */
-    //}
+  while (0 == (regptr->stat.rxFull)) {
+    // Do Nothing
+  }
 
-    /* read character from Receive Holding Register */
-    c = regptr->rbr;
-    regptr->ier = irmask;       /* Restore UART interrupts.     */
-    return c;
+  /* read character from data register */
+  c = regptr->data;
+  regptr->ctl = irmask;        /* Restore UART interrupts.     */
+  return c;
 }
 
 extern	void	_doprnt(char *, int (*)(int), ...);

@@ -19,6 +19,7 @@ CONFIG	= config
 all:		conf.h conf.c
 
 ${CONFIG}:	lex.yy.c y.tab.c
+		sed -i -e '/int yyleng;/s:int:size_t:' lex.yy.c
 		$(CC) ${CFLAGS} -o $@ y.tab.c ${LFLAGS}
 
 lex.yy.c:	config.l

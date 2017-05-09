@@ -46,12 +46,12 @@ _start:
 
 	/* Clear Xinu-defined trap and interrupt vectors */
 
-	# la	a0, IRQ_ADDR
-	# la	a1, IRQVEC_END
-	# jal	memzero
+	la	a0, IRQ_ADDR
+	la	a1, IRQVEC_END
+	jal	memzero
 	la	a0, TRAPVEC_ADDR
 	la	a1, IRQVEC_END
-	# jal	memzero
+	jal	memzero
 
 	
 	/* Copy low-level interrupt dispatcher to reserved location.	*/
@@ -96,7 +96,7 @@ _start:
 
 	la	a0, _end
 	move	a1, s0
-	jal	memzero
+	# jal	memzero
 
 	/* Clear the BSS segment */
 
@@ -265,13 +265,13 @@ excp_tbl: # see Table 8-25, pg 95,96
         ##
         # declare all handlers here, these must be in file handlers.s
         .extern countCompare  # IRQ7 = hwIRQ5, Cop0 counter
-        .extern UARTinterr    # IRQ6 - hwIRQ4, see vhdl/tb_cMIPS.vhd
+        .extern ttyInterrupt  # IRQ6 - hwIRQ4, see vhdl/tb_cMIPS.vhd
         .extern extCounter    # IRQ5 - hwIRQ3, see vhdl/tb_cMIPS.vhd
 
 	.extern clkhandler
 	
         .set M_CauseIM,0x0000ff00   # keep bits 15..8 -> IM = IP
-        .set M_StatusIEn,0x0000ff11 # user mode, enable all interrupts
+        .set M_StatusIEn,0x0000e311 # user mode, enable irq7,irq6,irq1,irq0
 
         .set noreorder
 
@@ -316,7 +316,7 @@ save:	addiu   sp, sp, -IRQREC_SIZE    /* Allocate space on stack      */
         sw      sp, IRQREC_SP(sp)
         sw      fp, IRQREC_S9(sp)
         sw      ra, IRQREC_RA(sp)
-        sw      zero, IRQREC_ZER(sp)
+        # sw      zero, IRQREC_ZER(sp)
         mfhi    t0                      /* Save hi and lo               */
         mflo    t1
         sw      t0, IRQREC_HI(sp)
@@ -360,8 +360,34 @@ handlers_tbl:
         j clk
 	nop
 
-uart:	jal UARThandler
+
+	##
+	## code replicated from system/dispatch.c
+	##
+	# mask = disable();	/* Disable interrupts for duration */
+uart:	addiu   sp, sp, -8	# make room in stack
+        mfc0    v0, CP0_STATUS
+        li      a0, ~STATUS_IE
+        and     a1, v0, a0
+	sw      v0, 4(sp)	# and save STATUS there
+	
+	# exlreset();		/* Reset system-wide exception bit */
+	li      a2, ~STATUS_EXL
+        and     v0, a1, a2
+	mtc0    v0, CP0_STATUS
+	
+	# (*handler) ();	/* Invoke device-specific handler  */
+	jal ttyInterrupt
 	nop
+	
+	# exlset();		/* Set system-wide exception bit   */
+	# restore(mask);
+	lw      v0, 4(sp)	# recover saved STATUS
+	addiu   sp, sp, 8
+        li      a2, STATUS_EXL
+        or      v0, v0, a2
+        mtc0    v0, CP0_STATUS
+	
 	j   restore
 	nop
 	
@@ -412,7 +438,6 @@ dismiss:
         addiu sp, sp, IRQREC_SIZE       /* Restore stack pointer        */
         ori   k0, k0, M_StatusIEn 
 	mtc0  k0, CP0_STATUS
-
         eret                            /* Return from interrupt        */
 	
 	nop         # one needs to separate the WAIT from the ERET

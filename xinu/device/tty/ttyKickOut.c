@@ -13,9 +13,10 @@ void	ttyKickOut(
 	)
 {
   Tcontrol c;
+  Tstatus  s;
+  Tinterr  i;
 
-  /* Set output interrupts on the UART, which causes */
-  /*   the device to generate an output interrupt    */
+  /* Set output interrupts on the UART */
   
   c.rts   = 1;
   c.intTX = 1;
@@ -23,6 +24,13 @@ void	ttyKickOut(
   c.speed = UART_SPEED;
 
   uptr->ctl = c;
-  
+
+  /*  if device is idle, generate an output interrupt    */
+  s = uptr->stat;
+  if (s.txEmpty == 1) {
+    i.setTX = 1;
+    uptr->interr = i;  
+  }
+
   return;
 }

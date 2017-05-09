@@ -58,7 +58,7 @@ savestate:
 	sw	sp, IRQREC_SP(sp)
 	sw	fp, IRQREC_S9(sp)
 	sw	ra, IRQREC_RA(sp)
-	sw	zero, IRQREC_ZER(sp)
+	# sw	zero, IRQREC_ZER(sp)
 	mfhi	t0                      /* Save hi and lo               */
 	mflo	t1
 	sw	t0, IRQREC_HI(sp)
