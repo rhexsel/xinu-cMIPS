@@ -18,14 +18,14 @@ void	ttyInter_out(
   int32	avail;			/* available chars in output buf*/
   int32	uspace;			/* space left in onboard UART	*/
 				/*   output FIFO		*/
-  volatile Tcontrol ctrl;
+  volatile int ctrl;
 
 
   /* If output is currently held, turn off output interrupts */
 
   if (typtr->tyoheld) {
-    ctrl.intTX = 0;
-    uptr->ctl = ctrl;
+    ctrl = uptr->ctl;
+    uptr->ctl = ctrl & ~UART_CTL_intTX;
     return;
   }
 
@@ -33,8 +33,8 @@ void	ttyInter_out(
 
   if ( (typtr->tyehead == typtr->tyetail) &&
        (semcount(typtr->tyosem) >= TY_OBUFLEN) ) {
-    ctrl.intTX = 0;
-    uptr->ctl = ctrl;
+    ctrl = uptr->ctl;
+    uptr->ctl = ctrl & ~UART_CTL_intTX;
     return;
   }
 
