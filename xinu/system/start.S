@@ -46,12 +46,12 @@ _start:
 
 	/* Clear Xinu-defined trap and interrupt vectors */
 
-	la	a0, IRQ_ADDR
-	la	a1, IRQVEC_END
-	jal	memzero
-	la	a0, TRAPVEC_ADDR
-	la	a1, IRQVEC_END
-	jal	memzero
+	# la	a0, IRQ_ADDR      ## invalid addresses for cMIPS
+	# la	a1, IRQVEC_END
+	# jal	memzero
+	# la	a0, TRAPVEC_ADDR
+	# la	a1, IRQVEC_END
+	# jal	memzero
 
 	
 	/* Copy low-level interrupt dispatcher to reserved location.	*/
@@ -202,7 +202,7 @@ _excp_0180:
 
         mfc0 k0, c0_cause
 
-        andi k0, k0, 0x3f    # keep only the first 16 ExceptionCodes & b"00"
+        andi k0, k0, 0x3c    # keep only the first 16 ExceptionCodes & b"00"
         sll  k0, k0, 1       # displacement in vector is 8 bytes
         lui  k1, %hi(excp_tbl)
         ori  k1, k1, %lo(excp_tbl)
@@ -239,7 +239,7 @@ excp_tbl: # see Table 8-25, pg 95,96
         nop
         wait 0x0f  # trap
         nop
-        wait 0x10  # reserved, should never get here
+        wait 0x10  # reserved instruction, should never get here
         nop
         wait 0x11  # FP exception, should never get here
         nop

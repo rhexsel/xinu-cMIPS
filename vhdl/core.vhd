@@ -1880,8 +1880,6 @@ begin
               is_SC, MM_is_SC, is_MFC0, MM_is_MFC0,
               EX_is_exception, is_exception);
 
-  -- exception_dec <= exception_type'pos(is_exception);  -- debugging only
-
    
   -- STATUS -- pg 79 -- cop0_12 --------------------
   COP0_DECODE_EXCEPTION_AND_UPDATE_STATUS:
