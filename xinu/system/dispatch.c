@@ -7,22 +7,22 @@
 /* Initialize list of interrupts */
 
 char *interrupts[] = {
-    "Software interrupt request 0",
-    "Software interrupt request 1",
-    "Hardware interrupt request 0, wmac",
-    "Hardware interrupt request 1, usb",
-    "Hardware interrupt request 2, eth0",
-    "Hardware interrupt request 3, eth1",
-    "Hardware interrupt request 4, uart",        // misc",
-    "Hardware interrupt request 5, timer",
-    "Miscellaneous interrupt request 0, timer",
-    "Miscellaneous interrupt request 1, error",
-    "Miscellaneous interrupt request 2, gpio",
-    "Miscellaneous interrupt request 3, uart",
-    "Miscellaneous interrupt request 4, watchdog",
-    "Miscellaneous interrupt request 5, perf",
-    "Miscellaneous interrupt request 6, reserved",
-    "Miscellaneous interrupt request 7, mbox",
+    "Sw irq 0",
+    "Sw irq 1",
+    "Hw irq 0, wmac",
+    "Hw irq 1, usb",
+    "Hw irq 2, eth0",
+    "Hw irq 3, eth1",
+    "Hw irq 4, uart",
+    "Hw irq 5, timer",
+    "Misc irq 0, timer",
+    "Misc irq 1, error",
+    "Misc irq 2, gpio",
+    "Misc irq 3, uart",
+    "Misc irq 4, watchdog",
+    "Misc irq 5, perf",
+    "Misc irq 6, reserved",
+    "Misc irq 7, mbox",
 };
 
 /*------------------------------------------------------------------------
@@ -54,6 +54,9 @@ void	dispatch(
 		irqnum++;
 		irqcode = irqcode >> 1;
 	}
+
+	kprintf("Xinu Interrupt %d caught, %s\r\n", 
+			irqnum, interrupts[irqnum]);
 
 #if 0
 	// this is the wifi-Ethernet device

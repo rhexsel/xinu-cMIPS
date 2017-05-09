@@ -9,6 +9,7 @@ int fibonacci(int n);
 
 int prA(void);
 int prB(void);
+int echo(void);
 
 int32 n; // shared variable
 
@@ -37,7 +38,7 @@ int main(void) {  // int argc, char **argv) {
 	  produced, semtab[produced].squeue);
 
   //create(ender, espaco na pilha, prior, nome, num argumentos)
-
+#if 0
   if ( (pid_prod = create(prod, 4096, 20, "prod", 2,consumed,produced))
        == SYSERR )
     kprintf("err cre prod\n");
@@ -50,14 +51,21 @@ int main(void) {  // int argc, char **argv) {
 
   if ( resume(pid_cons) == SYSERR ) kprintf("err res cons\n");
   if ( resume(pid_prod) == SYSERR ) kprintf("err res prod\n");
+#endif
 
-#if 1
+#if 0
   if ( resume(create(prA, 4096, 30, "pr_A", 0)) == (pri16)SYSERR )
-    kprintf("err res pr_A\n");
+    kprintf("err pr_A\n");
   
   if ( resume(create(prB, 4096, 31, "pr_B", 0)) == (pri16)SYSERR )
-    kprintf("err res prB\n");
+    kprintf("err prB\n");
 #endif
+
+#if 1
+  if ( resume(create(echo, 4096, 35, "echo", 0)) == (pri16)SYSERR )
+    kprintf("err echo\n");
+#endif  
+
 
   kprintf("%s\n", "main");
   while (TRUE) {
@@ -143,3 +151,22 @@ int prod(sid32 consumed, sid32 produced) {
 }
 
 
+#define EOT 0x04
+
+int echo(){
+  char c;
+  int  i;
+
+  kprintf("%s\n", "echo");
+
+  i = 0;
+  do {
+    c = getc(CONSOLE);
+    putc(CONSOLE, c);
+    i += 1;
+  } while (c != EOT);
+
+  kprintf("%x\n", i);
+
+  return(i);
+}

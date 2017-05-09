@@ -24,7 +24,7 @@ struct	dentry	devtab[NDEVS] =
 	  (void *)ttyInit, (void *)ionull, (void *)ionull,
 	  (void *)ttyRead, (void *)ttyWrite, (void *)ioerr,
 	  (void *)ttyGetc, (void *)ttyPutc, (void *)ttyControl,
-	  (void *)0x3c0000e0, (void *)ttyInterrupt, 11 },
+	  (void *)0x3c0000e0, (void *)ttyInterrupt, 6 },
 
 /* NULLDEV is null */
 	{ 1, 0, "NULLDEV",
@@ -54,66 +54,24 @@ struct	dentry	devtab[NDEVS] =
 	  (void *)ionull, (void *)ionull, (void *)ioerr,
 	  (void *)0x0, (void *)ioerr, 0 },
 
-/* LFILESYS is lfs */
-	{ 5, 0, "LFILESYS",
-	  (void *)lfsInit, (void *)lfsOpen, (void *)ioerr,
-	  (void *)ioerr, (void *)ioerr, (void *)ioerr,
-	  (void *)ioerr, (void *)ioerr, (void *)ioerr,
-	  (void *)0x0, (void *)ionull, 0 },
+/* LFILESYS is null */
+	{ 5, 4, "LFILESYS",
+	  (void *)ionull, (void *)ionull, (void *)ionull,
+	  (void *)ionull, (void *)ionull, (void *)ioerr,
+	  (void *)ionull, (void *)ionull, (void *)ioerr,
+	  (void *)0x0, (void *)ioerr, 0 },
 
-/* LFILE0 is lfl */
-	{ 6, 0, "LFILE0",
-	  (void *)lflInit, (void *)ioerr, (void *)lflClose,
-	  (void *)lflRead, (void *)lflWrite, (void *)lflSeek,
-	  (void *)lflGetc, (void *)lflPutc, (void *)lflControl,
-	  (void *)0x0, (void *)ionull, 0 },
+/* TESTDISK is null */
+	{ 6, 5, "TESTDISK",
+	  (void *)ionull, (void *)ionull, (void *)ionull,
+	  (void *)ionull, (void *)ionull, (void *)ioerr,
+	  (void *)ionull, (void *)ionull, (void *)ioerr,
+	  (void *)0x0, (void *)ioerr, 0 },
 
-/* LFILE1 is lfl */
-	{ 7, 1, "LFILE1",
-	  (void *)lflInit, (void *)ioerr, (void *)lflClose,
-	  (void *)lflRead, (void *)lflWrite, (void *)lflSeek,
-	  (void *)lflGetc, (void *)lflPutc, (void *)lflControl,
-	  (void *)0x0, (void *)ionull, 0 },
-
-/* LFILE2 is lfl */
-	{ 8, 2, "LFILE2",
-	  (void *)lflInit, (void *)ioerr, (void *)lflClose,
-	  (void *)lflRead, (void *)lflWrite, (void *)lflSeek,
-	  (void *)lflGetc, (void *)lflPutc, (void *)lflControl,
-	  (void *)0x0, (void *)ionull, 0 },
-
-/* LFILE3 is lfl */
-	{ 9, 3, "LFILE3",
-	  (void *)lflInit, (void *)ioerr, (void *)lflClose,
-	  (void *)lflRead, (void *)lflWrite, (void *)lflSeek,
-	  (void *)lflGetc, (void *)lflPutc, (void *)lflControl,
-	  (void *)0x0, (void *)ionull, 0 },
-
-/* LFILE4 is lfl */
-	{ 10, 4, "LFILE4",
-	  (void *)lflInit, (void *)ioerr, (void *)lflClose,
-	  (void *)lflRead, (void *)lflWrite, (void *)lflSeek,
-	  (void *)lflGetc, (void *)lflPutc, (void *)lflControl,
-	  (void *)0x0, (void *)ionull, 0 },
-
-/* LFILE5 is lfl */
-	{ 11, 5, "LFILE5",
-	  (void *)lflInit, (void *)ioerr, (void *)lflClose,
-	  (void *)lflRead, (void *)lflWrite, (void *)lflSeek,
-	  (void *)lflGetc, (void *)lflPutc, (void *)lflControl,
-	  (void *)0x0, (void *)ionull, 0 },
-
-/* TESTDISK is ram */
-	{ 12, 0, "TESTDISK",
-	  (void *)ramInit, (void *)ramOpen, (void *)ramClose,
-	  (void *)ramRead, (void *)ramWrite, (void *)ioerr,
-	  (void *)ioerr, (void *)ioerr, (void *)ioerr,
-	  (void *)0x0, (void *)ionull, 0 },
-
-/* NAMESPACE is nam */
-	{ 13, 0, "NAMESPACE",
-	  (void *)namInit, (void *)namOpen, (void *)ioerr,
-	  (void *)ioerr, (void *)ioerr, (void *)ioerr,
-	  (void *)ioerr, (void *)ioerr, (void *)ioerr,
+/* NAMESPACE is null */
+	{ 7, 6, "NAMESPACE",
+	  (void *)ionull, (void *)ionull, (void *)ionull,
+	  (void *)ionull, (void *)ionull, (void *)ioerr,
+	  (void *)ionull, (void *)ionull, (void *)ioerr,
 	  (void *)0x0, (void *)ioerr, 0 }
 };

@@ -14,7 +14,6 @@ devcall	ttyInit(
 {
   struct	ttycblk	*typtr;		/* pointer to ttytab entry	*/
   struct	uart_csreg *uptr;	/* address of UART's CSRs	*/
-  Tcontrol ctrl;
   
   typtr = &ttytab[ devptr->dvminor ];
 	
@@ -53,13 +52,7 @@ devcall	ttyInit(
 
   uptr = (struct uart_csreg *)devtab[CONSOLE].dvcsr;
 
-  ctrl.speed = UART_SPEED;
-  ctrl.intTX = 0;  // no interrupts
-  ctrl.intRX = 0;
-  ctrl.ign2  = 0;
-  ctrl.ign   = 0;
-  ctrl.rts   = 0;
-  uptr->ctl = ctrl;
+  uptr->ctl = UART_CTL_RTS | UART_SPEED;
 
   /* Register the interrupt handler for the dispatcher */
 
@@ -69,7 +62,10 @@ devcall	ttyInit(
 
   enable_irq(devptr->dvirq);
 
-  ttyKickOut(typtr, uptr);
+  uptr->ctl = UART_CTL_RTS | UART_CTL_intTX | UART_CTL_intRX | UART_SPEED;
+
+  // do not kickstart interrupts because remote unit has not started yet RH
+  // ttyKickOut(typtr, uptr);
 
   return OK;
 }

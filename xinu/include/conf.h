@@ -30,27 +30,17 @@ extern	struct	dentry	devtab[]; /* one entry per device */
 #define ETHER0      2       /* type null     */
 #define RFILESYS    3       /* type null     */
 #define RDISK       4       /* type null     */
-#define LFILESYS    5       /* type lfs      */
-#define LFILE0      6       /* type lfl      */
-#define LFILE1      7       /* type lfl      */
-#define LFILE2      8       /* type lfl      */
-#define LFILE3      9       /* type lfl      */
-#define LFILE4      10       /* type lfl      */
-#define LFILE5      11       /* type lfl      */
-#define TESTDISK    12       /* type ram      */
-#define NAMESPACE   13       /* type nam      */
+#define LFILESYS    5       /* type null     */
+#define TESTDISK    6       /* type null     */
+#define NAMESPACE   7       /* type null     */
 
 /* Control block sizes */
 
-#define	Nnull	4
+#define	Nnull	7
 #define	Ntty	1
-#define	Nram	1
-#define	Nlfs	1
-#define	Nlfl	6
-#define	Nnam	1
 
 #define DEVMAXNAME 24
-#define NDEVS 14
+#define NDEVS 8
 
 
 /* Configuration and Size Constants */

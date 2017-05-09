@@ -31,7 +31,7 @@ tty:
 		-i ttyInit	-o ionull	-c ionull
 		-r ttyRead	-g ttyGetc	-p ttyPutc
 		-w ttyWrite	-s ioerr	-n ttyControl
-		-intr ttyInterrupt	-csr 0x3c0000e0	-irq 11
+		-intr ttyInterrupt	-csr 0x3c0000e0	-irq 6
 
 /* type of an ethernet device */
 eth:
@@ -73,25 +73,25 @@ ram:
 		-w ramWrite	-s ioerr	-n ioerr
 		-intr ionull
 
-/* type of a local file system master device */
+/* type of a local file system master device  on ram */
 lfs:
-	on ram
+	on nothing
 		-i lfsInit	-o lfsOpen	-c ioerr
 		-r ioerr	-g ioerr	-p ioerr
 		-w ioerr	-s ioerr	-n ioerr
 		-intr ionull
 
-/* type of a local file pseudo-device */
+/* type of a local file pseudo-device on lfs */
 lfl:
-	on lfs
+	on nothing
 		-i lflInit	-o ioerr	-c lflClose
 		-r lflRead	-g lflGetc	-p lflPutc
 		-w lflWrite	-s lflSeek	-n lflControl
 		-intr ionull
 
-/* type of namespace device */
+/* type of namespace device on top */
 nam:
-	on top
+	on nothing
 		-i namInit	-o namOpen	-c ioerr
 		-r ioerr	-g ioerr	-p ioerr
 		-w ioerr	-s ioerr	-n ioerr
@@ -130,26 +130,26 @@ nam:
 
    RDISK is null on nothing
 
-   /* Define the local file system master device (one per system) */
+   /* Define the local file system master device (one per system) lfs on ram*/
 
-   LFILESYS is lfs on ram
+   LFILESYS is null on nothing
 
    /* Define local file pseudo-devices (multiple per system) */
 
-   LFILE0 is lfl on lfs
-   LFILE1 is lfl on lfs
-   LFILE2 is lfl on lfs
-   LFILE3 is lfl on lfs
-   LFILE4 is lfl on lfs
-   LFILE5 is lfl on lfs
+   /* LFILE0 is lfl on lfs */
+   /* LFILE1 is lfl on lfs */
+   /* LFILE2 is lfl on lfs */
+   /* LFILE3 is lfl on lfs */
+   /* LFILE4 is lfl on lfs */
+   /* LFILE5 is lfl on lfs */
 
-   /* Define a RAM disk for testing */
+   /* Define a RAM disk for testing ram on mem */
 
-   TESTDISK is ram on mem
+   TESTDISK is null on nothing
 
-   /* Define a namespace device */
+   /* Define a namespace device nam on top */
 
-   NAMESPACE is nam on top
+   NAMESPACE is null on nothing
 
 %%
 

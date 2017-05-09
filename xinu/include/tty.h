@@ -7,13 +7,13 @@
 /* Size constants */
 
 #ifndef	Ntty
-#define	Ntty		1		/* number of serial tty lines	*/
+ #define	Ntty		1	/* number of serial tty lines	*/
 #endif
 #ifndef	TY_IBUFLEN
-#define	TY_IBUFLEN	128		/* num.	chars in input queue	*/
+  #define	TY_IBUFLEN	128	/* num.	chars in input queue	*/
 #endif
 #ifndef	TY_OBUFLEN
-#define	TY_OBUFLEN	64		/* num.	chars in output	queue	*/
+  #define	TY_OBUFLEN	64	/* num.	chars in output	queue	*/
 #endif
 
 /* Mode constants for input and output modes */
@@ -22,6 +22,9 @@
 #define	TY_IMCOOKED	'C'		/* cooked mode => line editing	*/
 #define	TY_IMCBREAK	'K'		/* honor echo, etc, no line edit*/
 #define	TY_OMRAW	'R'		/* raw mode => normal processing*/
+
+
+// RH changed fields to align addresses to 2**2
 
 struct	ttycblk	{			/* tty line control block	*/
 	char	*tyihead;		/* next input char to read	*/
@@ -62,8 +65,9 @@ struct	ttycblk	{			/* tty line control block	*/
 	char	tyostart;		/* character that starts output	*/
 	bool8	tyocrlf;		/* output CR/LF for LF ?	*/
 	char	tyifullc;		/* char to send when input full	*/
-        char    nil;                    /* to align on 4*N              */
+        char    nil;                    /* to align to 2**2             */
 };
+
 extern	struct	ttycblk	ttytab[];
 
 /* Characters with meaning to the tty driver */
@@ -80,7 +84,7 @@ extern	struct	ttycblk	ttytab[];
 #define	TY_UPARROW	'^'		/* Used for control chars (^X)	*/
 #define	TY_FULLCH	TY_BELL		/* char to echo when buffer full*/
 
-/* Tty control function codes */
+/* TTY control function codes */
 
 #define	TC_NEXTC	3		/* look ahead 1 character	*/
 #define	TC_MODER	4		/* set input mode to raw	*/

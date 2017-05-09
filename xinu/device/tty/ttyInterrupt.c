@@ -11,8 +11,7 @@ interrupt ttyInterrupt(void)
   struct	dentry	*devptr;	/* pointer to devtab entry	*/
   struct	ttycblk	*typtr;		/* pointer to ttytab entry	*/	
   struct	uart_csreg *uptr;	/* address of UART's CSRs	*/
-  Tstatus	iir;	                /* interrupt identification	*/
-  // int32	lsr = 0;	/* line status			*/
+  int    	iir;	                /* interrupt identification	*/
 
   /* For now, the CONSOLE is the only serial device */
 
@@ -38,14 +37,14 @@ interrupt ttyInterrupt(void)
   /* to coordinate with the upper half of the driver		*/
 
   // Receiver data available
-  if ( iir.rxFull != 0 ) {
-    uptr->interr.clrRX = 1;    // clear interrupt request
-    ttyInter_in(typtr, uptr);  // get new char
+  if ( (iir & UART_STA_rxFull) != 0 ) {
+    uptr->interr = UART_INT_clrRX;    // clear interrupt request
+    ttyInter_in(typtr, uptr);         // get new char
   }
 
   // Transmitter output FIFO is empty (i.e., ready for more)	*/
-  if ( iir.txEmpty != 0 ) {
-    uptr->interr.clrTX = 1;    // clear interrupt request
+  if ( (iir & UART_STA_txEmpty) != 0 ) {
+    uptr->interr = UART_INT_clrTX;    // clear interrupt request
     ttyInter_out(typtr, uptr);
   }
 

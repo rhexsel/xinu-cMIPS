@@ -6,6 +6,13 @@
 
 #define UART_SPEED 4
 
+// cannot get GCC to generate good code with bitfields
+//  thus, lots of defines
+
+#define UART_CTL_RTS   0x80
+#define UART_CTL_intTX 0x10
+#define UART_CTL_intRX 0x08
+
 typedef struct control { // control register fields (uses only ls byte)
   unsigned int ign : 24, // ignore uppermost 3 bytes
     rts     : 1,         // Request to Send output (bit 7)
@@ -14,6 +21,14 @@ typedef struct control { // control register fields (uses only ls byte)
     intRX   : 1,         // interrupt on RX buffer full (bit 3)
     speed   : 3;         // 4,8,16... {tx,rx}clock data rates  (bits 2,1,0)
 } Tcontrol;
+
+#define UART_STA_CTS       0x80
+#define UART_STA_txEmpty   0x40
+#define UART_STA_rxFull    0x20
+#define UART_STA_intTXempt 0x10
+#define UART_STA_intRXfull 0x08
+#define UART_STA_framing   0x02
+#define UART_STA_overun    0x01
 
 typedef struct status {  // status register fields (uses only ls byte)
   unsigned int ign : 24, // ignore uppermost 3 bytes
@@ -26,6 +41,11 @@ typedef struct status {  // status register fields (uses only ls byte)
     framing : 1,         // framing error (bit 1)
     overun  : 1;         // overun error (bit 0)
 } Tstatus;
+
+#define UART_INT_setTX  0x40
+#define UART_INT_setRX  0x20
+#define UART_INT_clrTX  0x10
+#define UART_INT_clrRX  0x08
 
 typedef struct interr  { // interrupt clear bits (uses only ls byte)
   unsigned int ign : 24, // ignore uppermost 3 bytes
@@ -45,10 +65,18 @@ typedef struct interr  { // interrupt clear bits (uses only ls byte)
  */
 struct	uart_csreg
 {
-  volatile Tcontrol  ctl;        // w-o,  address is (int *)IO_UART_ADDR
-  volatile Tstatus   stat;       // r-o,  address is (int *)(IO_UART_ADDR+1)
-  volatile Tinterr   interr;     // r+w,  address is (int *)(IO_UART_ADDR+2)
-  volatile uint32    data;       // r-w,  address is (int *)(IO_UART_ADDR+3)
+  int  ctl;        // w-o,  address is (int *)IO_UART_ADDR
+  int  stat;       // r-o,  address is (int *)(IO_UART_ADDR+1)
+  int  interr;     // r+w,  address is (int *)(IO_UART_ADDR+2)
+  int  data;       // r-w,  address is (int *)(IO_UART_ADDR+3)
+};
+
+struct	z_uart_csreg
+{
+  Tcontrol  ctl;        // w-o,  address is (int *)IO_UART_ADDR
+  Tstatus   stat;       // r-o,  address is (int *)(IO_UART_ADDR+1)
+  Tinterr   interr;     // r+w,  address is (int *)(IO_UART_ADDR+2)
+  uint32    data;       // r-w,  address is (int *)(IO_UART_ADDR+3)
 };
 
 struct  zz_uart_csreg

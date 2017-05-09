@@ -153,7 +153,7 @@ static	void	sysinit(void)
 	memptr->mlength = memlist.mlength = (uint32)(maxheap - minheap);
 
 
-#if 0
+#if 1
 	for (i = 0; i < NQENT; i+=1) {
 	  queuetab[i].qnext = EMPTY;
 	  queuetab[i].qprev = EMPTY;
@@ -216,16 +216,10 @@ static	void	sysinit(void)
 
 	/* Initialize devices */
 
-//TESTE$$$$$$$$$$$$$$$$$$$$$$$
-// kprintf("NUM DEVS %d\n\r\n",NDEVS);
-// kprintf("sizeof procent: %d\n\r\n", sizeof(procent));
-
-#if 0
 	for (i = 0; i < NDEVS; i++) {
 	  init(i);
 	}
 
 	return;
-#endif
 
 }

@@ -22,14 +22,17 @@ INCLUDE  = -I../include
 
 # C compilation flags -Werror
 CFLAGS = -O2 -EL -Wall -Wstrict-prototypes -Wno-trigraphs	\
-	-nostdinc -fno-builtin -fno-common	\
-	-fomit-frame-pointer -fno-pic -ffunction-sections -G 0	\
-	-mno-abicalls -mabi=32 -march=mips32r2	\
-	-Wa,-32 -Wa,-march=mips32r2 -Wa,-mips32r2 -Wa,--trap	\
+	-nostdinc -fno-builtin 	\
+	-G 0	\
+	-Wa,-mips32 -Wa,--trap	\
 	-mno-branch-likely                                      \
 	-mcode-readable=no					\
 	${INCLUDE} -c
 
+
+#	-mno-abicalls -mabi=32 -march=mips32r2	\
+#	-Wa,-32 -Wa,-march=mips32r2 -Wa,-mips32r2 -Wa,--trap	\
+#	-fomit-frame-pointer -fno-pic -ffunction-sections -G 0	\
 #	-nostdinc -fno-strict-aliasing -fno-common	\
 #	-mlong-calls -mno-abicalls -mabi=32 -march=mips32r2	\
 
@@ -50,9 +53,9 @@ reg_names=-M reg-names=numeric -M cp0-names=numeric
 
 elf:  xinu.elf prog.bin data.bin
 	${OBJDUMP} -z -D -EL ${reg_names} --show-raw-insn \
-		--section .text  --section .data \
-		--section .sdata --section .sbss \
-		--section .bss   --section .rodata xinu.elf >ELF
+		--section .text  --section .excp --section .data \
+		--section .sdata --section .sbss --section .bss \
+		--section .rodata xinu.elf >ELF
 
 prog.bin: xinu.elf data.bin
 	${OBJCOPY} -S -j .text -O binary xinu.elf prog.bin
