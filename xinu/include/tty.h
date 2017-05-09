@@ -65,7 +65,7 @@ struct	ttycblk	{			/* tty line control block	*/
 	char	tyostart;		/* character that starts output	*/
 	bool8	tyocrlf;		/* output CR/LF for LF ?	*/
 	char	tyifullc;		/* char to send when input full	*/
-        char    nil;                    /* to align to 2**2             */
+        char    nil;                    /* filling to align to 2**2     */
 };
 
 extern	struct	ttycblk	ttytab[];
