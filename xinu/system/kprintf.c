@@ -54,20 +54,18 @@ syscall kputc(byte c)
 syscall kgetc(void)
 {
   volatile struct uart_csreg *regptr;
-  byte c;
-  struct	dentry	*devptr;
-  Tcontrol irmask, off;
+  byte   c;
+  struct dentry	*devptr;
+  int    irmask, off;
 
   devptr = (struct dentry *) &devtab[CONSOLE];
   regptr = (struct uart_csreg *)devptr->dvcsr;
 
   irmask = regptr->ctl;         /* Save UART interrupt state.   */
-  off = irmask;
-  off.intTX = 0;
-  off.intRX = 0;
+  off = irmask & ~UART_CTL_intTX & UART_CTL_intRX;
   regptr->ctl = off;            /* Disable UART interrupts.     */
 
-  while (0 == (regptr->stat.rxFull)) {
+  while ( 0 == (regptr->stat & UART_STA_rxFull) ) {
     // Do Nothing
   }
 
