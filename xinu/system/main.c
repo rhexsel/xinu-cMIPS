@@ -34,8 +34,8 @@ int main(void) {  // int argc, char **argv) {
 
   consumed = semcreate(0);  //semaphore
   produced = semcreate(1);
-  kprintf("sem c=%x q(%x)  p=%x q(%x)\n", consumed, semtab[consumed].squeue,
-	  produced, semtab[produced].squeue);
+  // kprintf("sem c=%x q(%x)  p=%x q(%x)\n", consumed, semtab[consumed].squeue,
+  // 	  produced, semtab[produced].squeue);
 
   //create(ender, espaco na pilha, prior, nome, num argumentos)
 #if 0
@@ -53,7 +53,7 @@ int main(void) {  // int argc, char **argv) {
   if ( resume(pid_prod) == SYSERR ) kprintf("err res prod\n");
 #endif
 
-#if 0
+#if 1
   if ( resume(create(prA, 4096, 30, "pr_A", 0)) == (pri16)SYSERR )
     kprintf("err pr_A\n");
   
@@ -67,7 +67,7 @@ int main(void) {  // int argc, char **argv) {
 #endif  
 
 
-  kprintf("%s\n", "main");
+  kprintf("%s\n", "main()");
   while (TRUE) {
     
     for (i = 1; i < 46; i++) {
@@ -100,9 +100,9 @@ int fibonacci(int32 n) {
 
 int prA(){
   int i = 0;
-  while (i < 5){
+  while (i < 6){
     kprintf("\tpr_A\n");
-    sleep(2);
+    sleep(1);
     i += 1;
   }
   return(i);
@@ -110,7 +110,7 @@ int prA(){
 
 int prB(){
   int i = 0;
-  while (i < 5){
+  while (i < 6){
     kprintf("\tpr_B\n");
     sleep(3);
     i += 1;
@@ -153,11 +153,11 @@ int prod(sid32 consumed, sid32 produced) {
 
 #define EOT 0x04
 
-int echo(){
+int echo() {
   char c;
   int  i;
 
-  kprintf("%s\n", "echo");
+  kprintf("%s\n", "echo()");
 
   i = 0;
   do {
