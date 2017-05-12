@@ -35,7 +35,7 @@ clkupdate:
 /* Abnormal case: timer is beyond the next interrupt count; reset	*/
 compare_up:
 	addu	a0, v1, a0	    /* a0 = COUNT + cycles		*/
-	nop
+	ehb
 	mtc0	a0, CP0_COMPARE	    /* COMPARE = a0			*/
 	jr	ra
 	nop

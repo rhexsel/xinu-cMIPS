@@ -61,17 +61,17 @@ syscall kgetc(void)
   devptr = (struct dentry *) &devtab[CONSOLE];
   regptr = (struct uart_csreg *)devptr->dvcsr;
 
-  irmask = regptr->ctl;         /* Save UART interrupt state.   */
+  irmask = regptr->ctl.i ;      /* Save UART interrupt state.   */
   off = irmask & ~UART_CTL_intTX & UART_CTL_intRX;
-  regptr->ctl = off;            /* Disable UART interrupts.     */
+  regptr->ctl.i = off;          /* Disable UART interrupts.     */
 
-  while ( 0 == (regptr->stat & UART_STA_rxFull) ) {
+  while ( 0 == (regptr->stat.i & UART_STA_rxFull) ) {
     // Do Nothing
   }
 
   /* read character from data register */
   c = regptr->data;
-  regptr->ctl = irmask;        /* Restore UART interrupts.     */
+  regptr->ctl.i = irmask;        /* Restore UART interrupts.     */
   return c;
 }
 

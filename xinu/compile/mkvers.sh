@@ -8,4 +8,4 @@ if [ -z "$USER" ]; then
 fi
 HOST=`hostname`
 VN=`cat vn`
-echo "(cMIPS Xinu) #$VN ("$USER"@"$HOST") "`date` > version
+echo "cMIPS Xinu #$VN ("$USER"@"$HOST") "`date` > version

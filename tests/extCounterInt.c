@@ -5,9 +5,9 @@
 
 #define MAX   100
 #define FALSE (0==1)
-#define TRUE  ~FALSE
+#define TRUE  !FALSE
 
-extern int _counter_val;
+extern volatile int _counter_val;
 
 int p[MAX];
 

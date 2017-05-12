@@ -1,9 +1,12 @@
 	##
-	## generate and handle (??) a instruction fetch bus error
+	## generate and handle (??) an instruction fetch bus error
 	## the error occurs on an attempt to fetch from non-exixting ROM
 	##
 	## one TLB entry must point into the non-existing ROM address to
 	##   avoid a TLBmiss exception.
+	##
+	## ignore VHDL complaints about "romRDindex out of bounds"
+	##   ROM _must_ be indexed out of bounds for this test
 	##
 	
 	.include "cMIPS.s"
@@ -18,7 +21,7 @@ _start: nop
 
         ## set STATUS, cop0, no interrupts enabled, user mode
         li   $k0, 0x10000010
-        mtc0 $k0, cop0_STATUS
+        mtc0 $k0, c0_status
 
 	.set bad_address, (x_INST_BASE_ADDR + x_INST_MEM_SZ + 4096)
 	
@@ -27,21 +30,21 @@ _start: nop
 
         li    $a0, ( bad_address >>12 )
         sll   $a2, $a0, 12      # tag for RAM[8,9] double-page
-        mtc0  $a2, cop0_EntryHi
+        mtc0  $a2, c0_entryhi
 
         li    $a0, ((bad_address + 0*4096) >>12 )
         sll   $a1, $a0, 6       # ROM_top+4096 (even)
         ori   $a1, $a1, 0b00000000000000000000000000000111 # ccc=0, d,v,g1
-        mtc0  $a1, cop0_EntryLo0
+        mtc0  $a1, c0_entrylo0
 
         li    $a0, ((bad_address + 1*4096) >>12 )
         sll   $a1, $a0, 6       # ROM_top+8192 (odd)
         ori   $a1, $a1, 0b00000000000000000000000000000111 # ccc=0, d,v,g1
-        mtc0  $a1, cop0_EntryLo1
+        mtc0  $a1, c0_entrylo1
 
         # and write it to TLB[3]
         li    $k0, 3
-        mtc0  $k0, cop0_Index
+        mtc0  $k0, c0_index
         tlbwi 
 
 	j    main
@@ -66,7 +69,7 @@ _exit:	nop	# flush pipeline
         .org x_EXCEPTION_0000,0
 _excp_0000:
         la   $k0, x_IO_BASE_ADDR
-        mfc0 $k1, cop0_CAUSE
+        mfc0 $k1, c0_cause
         sw   $k1, 0($k0)        # print CAUSE, flush pipe and stop simulation
         nop
         nop
@@ -76,7 +79,7 @@ _excp_0000:
         .org x_EXCEPTION_0100,0
 _excp_0100:
         la   $k0, x_IO_BASE_ADDR
-        mfc0 $k1, cop0_CAUSE
+        mfc0 $k1, c0_cause
         sw   $k1, 0($k0)        # print CAUSE, flush pipe and stop simulation
         nop
         nop
@@ -93,13 +96,13 @@ _excp_0100:
 excp_180:
         li   $k0, '\n'
         sw   $k0, x_IO_ADDR_RANGE($14)
-        mfc0 $k0, cop0_CAUSE
+        mfc0 $k0, c0_cause
 	sw   $k0, 0($14)        # print CAUSE
         li   $k0, '\n'
         sw   $k0, x_IO_ADDR_RANGE($14)
 
 	li   $k0, 0x10000010	# clear status of exception
-        mtc0 $k0, cop0_STATUS
+        mtc0 $k0, c0_status
 	
 	j    apocalipse 	# and print a message
 	nop
@@ -110,7 +113,7 @@ excp_180:
         .org x_EXCEPTION_0200,0
 _excp_0200:
         la   $k0, x_IO_BASE_ADDR
-        mfc0 $k1, cop0_CAUSE
+        mfc0 $k1, c0_cause
         sw   $k1, 0($k0)        # print CAUSE, flush pipe and stop simulation
         nop
         nop
@@ -121,7 +124,7 @@ _excp_0200:
         .org x_EXCEPTION_BFC0,0
 _excp_BFC0:
         la   $k0, x_IO_BASE_ADDR
-        mfc0 $k1, cop0_CAUSE
+        mfc0 $k1, c0_cause
         sw   $k1, 0($k0)        # print CAUSE, flush pipe and stop simulation
         nop
         nop

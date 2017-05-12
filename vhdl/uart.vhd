@@ -217,8 +217,6 @@ begin
   U_transmit: par_ser10 port map (clk, rst, tx_ld, tx_next,
                                    sta_xmit_sto, txdat);
 
-  -- U_STAT_DELAY: FFDsimple port map (clk, rst, s_tx, s_stat_dly);
-
   clear_tx_irq <= '0' when s_intwr = '1' and d_inp(CLR_IRQ_TX) = '1' else '1';
   
   tx_int_set <= ( (ctrl(IRQ_TX_B) and tx_ld) or
@@ -672,9 +670,9 @@ begin
                    BAUD_RT_2 when b"010",
                    BAUD_RT_3 when b"011",
                    BAUD_RT_4 when b"100",
-                   BAUD_RT_5 when b"101",  -- 115.200
-                   BAUD_RT_6 when b"110",  --  19.200
-                   BAUD_RT_7 when others;  --   9.600
+                   BAUD_RT_5 when b"101",
+                   BAUD_RT_6 when b"110",
+                   BAUD_RT_7 when others;
 
   U_bit_rt_rx: process(clk, rst, reset_rxck, en_rx_clk)
     variable baud_cnt : integer range 0 to 65535;
@@ -1114,9 +1112,9 @@ begin
                    BAUD_RT_2 when b"010",
                    BAUD_RT_3 when b"011",
                    BAUD_RT_4 when b"100",
-                   BAUD_RT_5 when b"101",  -- 115.200
-                   BAUD_RT_6 when b"110",  --  19.200
-                   BAUD_RT_7 when others;  --   9.600
+                   BAUD_RT_5 when b"101",
+                   BAUD_RT_6 when b"110",
+                   BAUD_RT_7 when others;
 
   U_bit_rt_tx: process(clk, rst)
     variable baud_cnt : integer;
@@ -1142,9 +1140,9 @@ begin
                    BAUD_RT_2 when b"010",
                    BAUD_RT_3 when b"011",
                    BAUD_RT_4 when b"100",
-                   BAUD_RT_5 when b"101",  -- 115.200
-                   BAUD_RT_6 when b"110",  --  19.200
-                   BAUD_RT_7 when others;  --   9.600
+                   BAUD_RT_5 when b"101",
+                   BAUD_RT_6 when b"110",
+                   BAUD_RT_7 when others;
 
   U_bit_rt_rx: process(clk, rst, reset_rxck, rx_run)
     variable baud_cnt : integer;

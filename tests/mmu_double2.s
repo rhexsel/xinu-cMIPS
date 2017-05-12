@@ -3,8 +3,15 @@
 	##   refill handler causes double fault, then fix it at
 	##   general exception handler
 	##
-	## Ensure LW in delay slot, prior to fault, completes
+	## Ensures LW in delay slot, prior to fault, completes
 	##
+        ## In order: (i) main causes a TLBmiss on fetching destination of JAL
+        ##               instruction in JAL's delay slot must complete
+        ##           (ii) main made TLB entry for PageTable invalid
+        ##                TLBmiss handler goes into double fault
+        ##           (iii) general exception handler fixes mapping for PT
+        ##           (iv) after eret, fetch at JAL's destination completes 
+        ##
 	##
 	## EntryHi     : EntryLo0           : EntryLo1
 	## VPN2 g ASID : PPN0 ccc0 d0 v0 g0 : PPN1 ccc1 d1 v1 g1
@@ -42,9 +49,9 @@
 
 	## set STATUS, cop0, no interrupts enabled
 _start:	li   $k0, 0x10000000
-        mtc0 $k0, cop0_STATUS
+        mtc0 $k0, c0_status
 	li   $k0, MMU_WIRED
-        mtc0 $k0, cop0_Wired
+        mtc0 $k0, c0_wired
 
 	j main
 	nop
@@ -59,15 +66,15 @@ _start:	li   $k0, 0x10000000
         .set noreorder
         .set noat
 
-_excp_000:  mfc0 $k1, cop0_Context
+_excp_000:  mfc0 $k1, c0_context
         lw   $k0, 0($k1)           # k0 <- TP[Context.lo]
         lw   $k1, 8($k1)           # k1 <- TP[Context.hi]
-        mtc0 $k0, cop0_EntryLo0    # EntryLo0 <- k0 = even element
-        mtc0 $k1, cop0_EntryLo1    # EntryLo1 <- k1 = odd element
+        mtc0 $k0, c0_entrylo0    # EntryLo0 <- k0 = even element
+        mtc0 $k1, c0_entrylo1    # EntryLo1 <- k1 = odd element
         ehb
         tlbwi                      # write indexed for not overwriting PTable
 	li   $30, 't'
-	sw   $30, x_IO_ADDR_RANGE($20)	
+	sw   $30, x_IO_ADDR_RANGE($20)	# then\n
 	li   $30, 'h'
 	sw   $30, x_IO_ADDR_RANGE($20)	
 	li   $30, 'e'
@@ -84,7 +91,7 @@ _excp_000:  mfc0 $k1, cop0_Context
         .org x_EXCEPTION_0100,0
 _excp_0100:
         la   $k0, x_IO_BASE_ADDR
-        mfc0 $k1, cop0_CAUSE
+        mfc0 $k1, c0_cause
         sw   $k1, 0($k0)        # print CAUSE, flush pipe and stop simulation
         nop
         nop
@@ -104,17 +111,18 @@ _excp_0100:
         .set noreorder
         .set noat
 
+	##
         ## EntryHi holds VPN2(31..13), probe the TLB for the offending entry
 	## VPN2 g ASID : PPN0 ccc0 d0 v0 g0 : PPN1 ccc1 d1 v1 g1
-_excp_180: tlbp         # probe for the guilty entry
-        mfc0 $k1, cop0_CAUSE	# clear CAUSE
-        tlbr            # it will surely hit, just use Index to point at it
-        mfc0 $k1, cop0_EntryLo0
+	##
+_excp_180: tlbp			# probe for the guilty entry
+        tlbr			# it will hit, just use Index to point at it
+        mfc0 $k1, c0_entrylo0
         ori  $k1, $k1, 0x0002   # make V=1
-        mtc0 $k1, cop0_EntryLo0
+        mtc0 $k1, c0_entrylo0
         tlbwi                   # write entry back
 
-        li   $30, 'h'
+        li   $30, 'h'			# here\n
         sw   $30, x_IO_ADDR_RANGE($20)
 	li   $30, 'e'
         sw   $30, x_IO_ADDR_RANGE($20)
@@ -131,7 +139,7 @@ _excp_180: tlbp         # probe for the guilty entry
 
 _excp_0200:
         la   $k0, x_IO_BASE_ADDR
-        mfc0 $k1, cop0_CAUSE
+        mfc0 $k1, c0_cause
         sw   $k1, 0($k0)        # print CAUSE, flush pipe and stop simulation
         nop
         nop
@@ -141,7 +149,7 @@ _excp_0200:
         .org x_EXCEPTION_BFC0,0
 _excp_BFC0:
         la   $k0, x_IO_BASE_ADDR
-        mfc0 $k1, cop0_CAUSE
+        mfc0 $k1, c0_cause
         sw   $k1, 0($k0)        # print CAUSE, flush pipe and stop simulation
         nop
         nop
@@ -166,6 +174,9 @@ _excp_BFC0:
 	.ent main
 main:	la   $20, x_IO_BASE_ADDR
 	
+	la   $4, PTbase		# base of RAM
+	mtc0 $4, c0_context	# load Context with PTbase
+	
 	##
 	## setup a PageTable
 	##
@@ -174,15 +185,13 @@ main:	la   $20, x_IO_BASE_ADDR
 	## PPN0 ccc0 d0 v0 g0 : PPN1 ccc1 d1 v1 g1
 	##
 
-	la  $4, PTbase
-
-	li   $5, 0            # 1st ROM mapping
-	mtc0 $5, cop0_Index
+	li   $5, 0 		# 1st ROM mapping
+	mtc0 $5, c0_index
 	nop
 	tlbr
 
-	mfc0 $6, cop0_EntryLo0
-	mfc0 $7, cop0_EntryLo1
+	mfc0 $6, c0_entrylo0
+	mfc0 $7, c0_entrylo1
 
 	# 1st entry: PPN0 & PPN1 ROM
 	sw  $6, 0($4)
@@ -190,13 +199,13 @@ main:	la   $20, x_IO_BASE_ADDR
 	sw  $7, 8($4)
 	sw  $0, 0xc($4)
 
-	li $5, 2              # 2nd ROM mapping
-	mtc0 $5, cop0_Index
+	li $5, 2              	# 2nd ROM mapping
+	mtc0 $5, c0_index
 	nop
 	tlbr
 
-	mfc0 $6, cop0_EntryLo0
-	mfc0 $7, cop0_EntryLo1
+	mfc0 $6, c0_entrylo0
+	mfc0 $7, c0_entrylo1
 
 	# 2nd entry: PPN2 & PPN3 ROM
 	sw  $6, 0x10($4)
@@ -204,17 +213,15 @@ main:	la   $20, x_IO_BASE_ADDR
 	sw  $7, 0x18($4)
 	sw  $0, 0x1c($4)
 
-	# load Context with PTbase
-	mtc0 $4, cop0_Context
-	
+
 	## change mapping for 2nd ROM TLB entry, thus causing a miss
 
 	li   $9, 0x2000
 	sll  $9, $9, 8
 
-	mfc0 $8, cop0_EntryHi
+	mfc0 $8, c0_entryhi
 	add  $8, $9, $8     # change tag
-	mtc0 $8, cop0_EntryHi
+	mtc0 $8, c0_entryhi
 
 	tlbwi		    # and write it back to TLB
 
@@ -223,17 +230,18 @@ main:	la   $20, x_IO_BASE_ADDR
 	## make invalid TLB entry mapping the page table
 	##
         ## read tlb[4] (1st RAM mapping) and clear the V bit
+	##
 fix5:	li $5, 4
-        mtc0 $5, cop0_Index
+        mtc0 $5, c0_index
 
         tlbr
 
-        mfc0 $6, cop0_EntryLo0
+        mfc0 $6, c0_entrylo0
 
         addi $7, $zero, -3      # 0xffff.fffd = 1111.1111.1111.1101
         and  $8, $7, $6         # clear V bit
 
-        mtc0 $8, cop0_EntryLo0
+        mtc0 $8, c0_entrylo0
 
         tlbwi                   # write entry back to TLB
 
@@ -258,9 +266,9 @@ write:	la   $18, datum
 	##
 	
 jump:	jal  there
-	lw   $19, 0($18)	# this instr must complete
+	lw   $19, 0($18)	# this instruction must complete
 	
-	li   $19, 'a'
+	li   $19, 'a'		# and back again\n\n
 	sw   $19, x_IO_ADDR_RANGE($20)
 	li   $19, 'n'
 	sw   $19, x_IO_ADDR_RANGE($20)

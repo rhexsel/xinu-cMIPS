@@ -92,15 +92,11 @@ void	nulluser(void) {
 		(uint32)maxheap - (uint32)minheap);
 	kprintf("           [0x%08X to 0x%08X]\r\n\r\n",
 		(uint32)minheap, (uint32)maxheap - 1);
-
 #endif
 
 	/* Enable interrupts */
 
 	enable();
-
-	//TESTE $$$$$$$$$$$$$$$$$$$$$$$
-	// kprintf("Total number of live processes: %d\n\r\n",prcount);
 
 	/* Create a process to execute function main() */
 
@@ -152,15 +148,11 @@ static	void	sysinit(void)
 	memptr->mnext = NULL;
 	memptr->mlength = memlist.mlength = (uint32)(maxheap - minheap);
 
-
-#if 1
 	for (i = 0; i < NQENT; i+=1) {
 	  queuetab[i].qnext = EMPTY;
 	  queuetab[i].qprev = EMPTY;
 	  queuetab[i].qkey  = MINKEY;
-	  // kprintf("q %x[%x] %x %x\n", &(queuetab[i]), i, queuetab[i].qnext, queuetab[i].qprev );
 	}
-#endif
 
 	/* Initialize process table entries free */
 
@@ -212,7 +204,7 @@ static	void	sysinit(void)
 
 	/* Initialize non-volative RAM storage */
 
-	// nvramInit(); // CHANGE
+	// nvramInit();
 
 	/* Initialize devices */
 

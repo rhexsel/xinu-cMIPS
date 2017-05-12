@@ -18,13 +18,12 @@ void clkinit(void) {
 	
 	sleepq = newqueue();	/* allocate a queue to hold the delta	*/
 				/* list of sleeping processes		*/
-	// kprintf("slq %x\n",sleepq);
 
 	clkticks = 0;		/* start counting one second		*/
 
 	/* Add clock interrupt handler to interrupt vector array */
 
-	interruptVector[IRQ_TIMER] = &clkhandler;
+	// interruptVector[IRQ_TIMER] = &clkhandler;
 
 	/* Enable clock interrupts */
 

@@ -410,7 +410,7 @@ begin
   -- a3a2 wr  register (aligned to word addresses)
   --  00  0  control, R+W             IO_UART_ADDR +0
   --  01  1  status,  R-O             IO_UART_ADDR +4
-  --  10  0  interrupt conmtrol W-O   IO_UART_ADDR +8
+  --  10  0  interrupt conmtrol R+W   IO_UART_ADDR +8
   --  11  0  transmission W           IO_UART_ADDR +12
   --  11  1  reception    R           IO_UART_ADDR +12
   
