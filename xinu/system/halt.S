@@ -18,6 +18,6 @@
  */
 	.ent halt
 halt:
-	wait
-	j	halt
+	wait 0x00  // end simulation gracefully RH
+	j    halt
 	.end halt

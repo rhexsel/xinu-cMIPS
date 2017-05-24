@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.37 (w)1999-2012 BSI
-[*] Fri May 12 23:01:50 2017
+[*] Wed May 24 22:24:44 2017
 [*]
 [dumpfile] "/home/roberto/xinu-cMIPS/cMIPS.vcd"
-[dumpfile_mtime] "Fri May 12 22:58:19 2017"
-[dumpfile_size] 448489568
+[dumpfile_mtime] "Wed May 24 22:21:04 2017"
+[dumpfile_size] 124298909
 [savefile] "/home/roberto/xinu-cMIPS/v_irx.sav"
-[timestart] 86686800000
+[timestart] 10733800000
 [size] 1350 1018
-[pos] -111 -1
-*-26.000000 86745600000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-26.000000 10880000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] u_simple_uart.
 [sst_width] 210
 [signals_width] 221
@@ -17,12 +17,14 @@
 [sst_vpaned_height] 306
 @28
 clk
-@22
+@23
 u_core.pc[31:0]
 @28
+u_core.exception_taken
 u_core.interrupt_taken
-@29
 u_core.annul_twice
+@22
+u_core.exception_dec[31:0]
 @200
 -    decode, reg fetch
 @22
@@ -36,6 +38,8 @@ u_core.alu_inp_a[31:0]
 u_core.alu_inp_b[31:0]
 u_core.result[31:0]
 u_core.v_addr[31:0]
+@28
+u_core.ex_aval_cond
 @200
 -  COP0
 @22

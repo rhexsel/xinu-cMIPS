@@ -1,4 +1,4 @@
-/* uart.h - definintions for the NS16550 uart serial hardware */
+/* uart.h - definintions for the cMIPS's uart serial hardware */
 
 #define	UART_FIFO_SIZE	1	/* chars in UART onboard output FIFO	*/
 

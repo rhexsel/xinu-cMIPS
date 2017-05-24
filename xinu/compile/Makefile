@@ -48,8 +48,8 @@ OCFLAGS  = -I binary -O elf32-littlemips -B mips
 MKIMAGE   = uboot-tool/mkimage
 UBOOTOPTS = -A mips -O linux -T kernel -a 0x80010000 -C none -e 0x80010000 -n 'Xinu'
 
-# reg_names=-M reg-names=mips2r2 -M cp0-names=mips2r2
-reg_names=-M reg-names=numeric -M cp0-names=numeric
+reg_names=-M reg-names=mips2r2 -M cp0-names=mips2r2
+# reg_names=-M reg-names=numeric -M cp0-names=numeric
 
 elf:  xinu.elf prog.bin data.bin
 	${OBJDUMP} -z -D -EL ${reg_names} --show-raw-insn \

@@ -9,6 +9,9 @@
 void	xdone(void)
 {
 	kprintf("\r\n\r\nAll user processes have completed.\r\n\r\n");
-	gpioLEDOff(GPIO_LED_CISCOWHT);	/* turn off LED "run" light	*/
+
+	// there are no leds in the simulator  :(
+	// gpioLEDOff(GPIO_LED_CISCOWHT);/* turn off LED "run" light  RH */
+
 	halt();				/* halt the processor		*/
 }

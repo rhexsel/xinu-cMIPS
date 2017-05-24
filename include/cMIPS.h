@@ -80,11 +80,12 @@ extern void DSP7SEGput(int, int, int, int, int);
 extern int  KBDget(void);
 extern int  SWget(void);
 
-// RGB led color for DSP7SEGput (color must be in [0,7]
-#define l_RED   0x4
-#define l_GREEN 0x2
-#define l_BLUE  0x1
-
+#if 0
+// RGB led color for DSP7SEGput (color must be in [0,7], not used in XINU RH
+  #define l_RED   0x4
+  #define l_GREEN 0x2
+  #define l_BLUE  0x1
+#endif
 
 // struct to access the cache system statistics "peripheral"
 typedef struct sStats {

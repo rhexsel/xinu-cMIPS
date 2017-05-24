@@ -56,7 +56,7 @@ devcall	ttyInit(
 
   /* Register the interrupt handler for the dispatcher */
 
-  interruptVector[devptr->dvirq] = (void *)devptr->dvintr;
+  // interruptVector[devptr->dvirq] = (void *)devptr->dvintr;
 
   /* Ready to enable interrupts on the UART hardware */
 
