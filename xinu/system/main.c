@@ -1,172 +1,136 @@
-/*  main.c  - main */
+#define EOT 0x04
+#define QUEUE_SIZE 16
+#define i2c(n) (((n) < 10)   ? ((n)+'0') : (((n)+'a')-10))
+#define c2i(a) (((a) <= '9') ? ((a)-'0') : (((a)-'a')+10))
 
 #include <xinu.h>
 #include <ramdisk.h>
 
 extern process shell(void);
 
-int fibonacci(int n);
+pid32 ID_print_fib;
 
-int prA(void);
-int prB(void);
-int echo(void);
+int fibonacci(int32 input)
+{
+  int32 i,
+        fi = 0,
+        f1 = 0,
+        f2 = 1;
 
-int32 n; // shared variable
-
-// #define PROC_VOID FALSE
-
-int prod(sid32, sid32);
-int cons(sid32, sid32);
-
-
-sid32 produced, consumed; // shared variable
-
-/************************************************************************/
-/*									*/
-/* main - main program that Xinu runs as the first user process		*/
-/*									*/
-/************************************************************************/
-
-int main(void) {  // int argc, char **argv) {
-
-  int i, fibo, pid_cons, pid_prod;
-  n = 0;
-
-  consumed = semcreate(0);  //semaphore
-  produced = semcreate(1);
-  // kprintf("sem c=%x q(%x)  p=%x q(%x)\n", consumed, semtab[consumed].squeue,
-  // 	  produced, semtab[produced].squeue);
-
-  //create(ender, espaco na pilha, prior, nome, num argumentos)
-#if 0
-  if ( (pid_prod = create(prod, 4096, 20, "prod", 2,consumed,produced))
-       == SYSERR )
-    kprintf("err cre prod\n");
-
-  if ( (pid_cons = create(cons, 4096, 20, "cons", 2,consumed,produced))
-       == SYSERR )
-    kprintf("err cre cons\n");
-
-  kprintf("pid cons=%x prod=%x\n", pid_cons, pid_prod);
-
-  if ( resume(pid_cons) == SYSERR ) kprintf("err res cons\n");
-  if ( resume(pid_prod) == SYSERR ) kprintf("err res prod\n");
-#endif
-
-#if 1
-  if ( resume(create(prA, 4096, 30, "pr_A", 0)) == (pri16)SYSERR )
-    kprintf("err pr_A\n");
-  
-  if ( resume(create(prB, 4096, 31, "pr_B", 0)) == (pri16)SYSERR )
-    kprintf("err prB\n");
-#endif
-
-#if 1
-  if ( resume(create(echo, 4096, 35, "echo", 0)) == (pri16)SYSERR )
-    kprintf("err echo\n");
-#endif  
-
-
-  kprintf("%s\n", "main()");
-  while (TRUE) {
-    
-    for (i = 1; i < 46; i++) {
-      fibo = fibonacci(i);
-      kprintf("%-6x\n", fibo);
-    }
-  }
-  return OK;
-}
-
-int fibonacci(int32 n) {
-  int32 i;
-  int32 f1 = 0;
-  int32 f2 = 1;
-  int32 fi = 0;;
-  
-  if (n == 0)
+  if (!input)
     return 0;
-  if(n == 1)
+
+  if (input == 1)
     return 1;
-  
-  for(i = 2 ; i <= n ; i++ ) {
+
+  for (i = 2 ; i <= input ; ++i)
+  {
     fi = f1 + f2;
     f1 = f2;
     f2 = fi;
   }
+
   return fi;
 }
 
+int parse_hex(char *source)
+{
+  char current;
+  int parsed_hex = 0;
 
-int prA(){
-  int i = 0;
-  while (i < 6){
-    kprintf("\tpr_A\n");
-    sleep(1);
-    i += 1;
+  for (int i = 0; source[i] != '\0'; ++i)
+  {
+   current = source[i];
+   parsed_hex *= 16;
+   parsed_hex += c2i(current);
   }
-  return(i);
+  return parsed_hex;
 }
 
-int prB(){
-  int i = 0;
-  while (i < 6){
-    kprintf("\tpr_B\n");
-    sleep(3);
-    i += 1;
+void parse_str(unsigned int source, char *destination)
+{
+  int length = 0;
+  do
+  {
+    destination[length++] = i2c(source & 0xf);
+    source >>= 4;
+  }while (source != 0);
+
+  for (int i = 0; i < length / 2; ++i)
+  {
+    destination[i] ^= destination[length - i - 1];
+    destination[length - i - 1] ^= destination[i];
+    destination[i] ^= destination[length - i - 1];
   }
-  return(i);
+
+  destination[length] = '\0';
 }
-
-//consumidor
-int cons(sid32 consumed, sid32 produced) {
-
-  int32 i;
-  kprintf("\tcons sta\n");
-  for(i=0 ; i<=10 ; i++) {
-    // if (wait(produced) != OK) kprintf("\nerr cons w(p)\n\n");
-    wait(produced);
-    kprintf("\tc %x\n", n);
-    // if (signal(consumed) != OK) kprintf("\nerr cons s(c)\n\n");
-    signal(consumed);
-  }
-  kprintf("\tcons end\n");
-  return(i);
-}
-
-//produtor
-int prod(sid32 consumed, sid32 produced) {
-  int32 i;
-  kprintf("\tprod sta\n");
-  for(i=0 ; i<10 ; i++) {
-    // if (wait(consumed) != OK) kprintf("\nerr prod w(c)\n\n");
-    wait(consumed);
-    n++;
-    kprintf("\tp %x\n", n);
-    signal(produced);
-    // if (signal(produced) != OK) kprintf("\nerr prod s(p)\n\n");
-  }
-  kprintf("\tprod end\n");
-  return(i);
-}
-
 
 #define EOT 0x04
 
-int echo() {
-  char c;
-  int  i;
+int PID_f;
 
-  kprintf("%s\n", "echo()");
+void read_tty(void)
+{
+  char received_char,
+       request_str[9];
+  int request_length;
+  umsg32 msg;
 
-  i = 0;
-  do {
-    c = getc(CONSOLE);
-    putc(CONSOLE, c);
-    i += 1;
-  } while (c != EOT);
+  do
+  {
+    request_length = 0;
+    while ((received_char = getc(CONSOLE)) != '\n')
+      if (received_char != EOT)
+        request_str[request_length++] = received_char;
+    request_str[request_length] = '\0';
 
-  kprintf("%x\n", i);
+    if (request_length)
+      msg = parse_hex(request_str);
+    else
+      msg = -1;
+    send(PID_f, msg);
 
-  return(i);
+  }while (received_char != EOT);  // request_length);
+}
+
+void print_fib(void)
+{
+  char result_str[9];
+  int request_num;
+
+  do
+  {
+    request_num = (int)receive();
+
+    if (request_num > -1)
+    {
+      parse_str(fibonacci(request_num), result_str);
+
+      for (int i = 0; result_str[i] != '\0'; ++i)
+        putc(CONSOLE, result_str[i]);
+      putc(CONSOLE, '\n');
+    }
+  }while (request_num > -1);
+}
+
+
+int main(void)
+{
+  int pid_r; // , pid_f;
+
+  PID_f = create(print_fib, 4096, 32, "print_fib", 0);
+
+  pid_r = create(read_tty, 4096, 31, "read_tty", 0); // 1, pid_f);
+
+  kprintf("fib %x read %x\n", PID_f, pid_r);
+
+  if (resume(PID_f) == (pri16)SYSERR)
+    kprintf("err print_fib\n");
+
+  if ( resume(pid_r) == (pri16)SYSERR )
+    kprintf("err read_tty\n");
+
+
+  return 0;
 }

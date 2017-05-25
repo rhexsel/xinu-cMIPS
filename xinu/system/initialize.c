@@ -156,23 +156,34 @@ static	void	sysinit(void)
 
 	/* Initialize process table entries free */
 
-	for (i = 0; i < NPROC; i++) {
+	for (i = 0; i < NPROC; i++) { // changed to avoid invalid mem values
 		prptr = &proctab[i];
-		prptr->prstate = PR_FREE;
-		prptr->prname[0] = NULLCH;
+		prptr->prstate   = PR_FREE;
+		prptr->prprio    = 0;
+		prptr->prstkptr  = NULL;
 		prptr->prstkbase = NULL;
-		prptr->prprio = 0;
+		prptr->prname[0] = NULLCH;
+		prptr->prhasmsg  = FALSE;
+		prptr->prstklen  = NULLSTK;
+		prptr->prsem     = 0;
+		prptr->prparent  = 0;
+		prptr->prmsg     = 0;
 	}
 
 	/* Initialize the Null process entry */
 
 	prptr = &proctab[NULLPROC];
-	prptr->prstate = PR_CURR;
-	prptr->prprio = 0;
+	prptr->prstate   = PR_CURR;
+	prptr->prprio    = 0;
 	strncpy(prptr->prname, "prnull", 7);
 	prptr->prstkbase = minheap;
-	prptr->prstklen = NULLSTK;
-	prptr->prstkptr = 0;
+	prptr->prstklen  = NULLSTK;
+	prptr->prstkptr  = 0;
+	prptr->prhasmsg  = FALSE;
+	prptr->prsem     = 0;
+	prptr->prparent  = 0;
+	prptr->prmsg     = 0;
+
 	currpid = NULLPROC;
 
 	nextpid = 1;                    // changed to global variable RH
@@ -186,7 +197,6 @@ static	void	sysinit(void)
 		semptr->sstate = S_FREE;
 		semptr->scount = 0;
 		semptr->squeue = newqueue();
-		// kprintf("s[%x].q %x\n",i,semptr->squeue);
 	}
 
 	/* Initialize buffer pools */
