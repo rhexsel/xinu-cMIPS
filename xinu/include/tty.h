@@ -2,7 +2,7 @@
 
 #define	TY_OBMINSP		20	/* min space in buffer before	*/
 					/* processes awakened to write	*/
-#define	TY_EBUFLEN		20	/* size of echo queue		*/
+#define	TY_EBUFLEN		32	/* size of echo queue, 20	*/
 
 /* Size constants */
 
@@ -13,7 +13,7 @@
   #define	TY_IBUFLEN	128	/* num.	chars in input queue	*/
 #endif
 #ifndef	TY_OBUFLEN
-  #define	TY_OBUFLEN	64	/* num.	chars in output	queue	*/
+  #define	TY_OBUFLEN	128	/* num.	chars in output	queue, 64*/
 #endif
 
 /* Mode constants for input and output modes */
@@ -41,31 +41,32 @@ struct	ttycblk	{			/* tty line control block	*/
 	sid32	tyosem;			/* output semaphore		*/
 
 	char	tyebuff[TY_EBUFLEN];	/* echo buffer			*/
+
 	char	tyimode;		/* input mode raw/cbreak/cooked	*/
 	bool8	tyiecho;		/* is input echoed?		*/
 	bool8	tyieback;		/* do erasing backspace on echo?*/
-
 	bool8	tyevis;			/* echo control chars as ^X ?	*/
+
 	bool8	tyecrlf;		/* echo CR-LF for newline?	*/
 	bool8	tyicrlf;		/* map '\r' to '\n' on input?	*/
 	bool8	tyierase;		/* honor erase character?	*/
-
 	char	tyierasec;		/* erase character (backspace)	*/
+
 	bool8	tyeof;			/* honor EOF character?		*/
 	char	tyeofch;		/* EOF character (usually ^D)	*/
 	bool8	tyikill;		/* honor line kill character?	*/
-
 	char	tyikillc;		/* line kill character		*/
+
 	bool8	tyoflow;		/* honor ostop/ostart?		*/
 	bool8	tyoheld;		/* output currently being held?	*/
 	char	tyostop;		/* character that stops output	*/
+	char	tyostart;		/* character that starts output	*/
 
 	int32	tyicursor;		/* current cursor position	*/
 
-	char	tyostart;		/* character that starts output	*/
 	bool8	tyocrlf;		/* output CR/LF for LF ?	*/
 	char	tyifullc;		/* char to send when input full	*/
-        char    nil;                    /* filling to align to 2**2     */
+        char    nil[2];                 /* filling to align to 2**2     */
 };
 
 extern	struct	ttycblk	ttytab[];

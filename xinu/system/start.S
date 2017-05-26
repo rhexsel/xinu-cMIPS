@@ -472,6 +472,74 @@ _excp_BFC0:
 
 
 
+        #----------------------------------------------------------------
+        # delays processing by approx 4*a0 processor cycles
+        .text
+        .set    noreorder
+        .global cmips_delay, delay_cycle, delay_us, delay_ms
+        .ent    cmips_delay
+delay_cycle:
+cmips_delay:
+        beq   a0, zero, _d_cye
+        nop
+_d_cy:  addiu a0, a0, -1
+        nop
+        bne   a0, zero, _d_cy
+        nop
+_d_cye: jr    ra
+        nop
+        .end    cmips_delay
+        #----------------------------------------------------------------
+
+        #================================================================
+        # delays processing by a0 times 1 microsecond
+        #   loop takes 5 cycles = 100ns @ 50MHz
+        #   1.000ns / 100 = 10
+        .text
+        .set    noreorder
+        .ent    delay_us
+delay_us:
+        beq   a0, zero, _d_use
+        nop
+        li    v0, 10
+        mult  v0, a0
+        nop
+        mflo  a0
+        sra   a0, a0, 1
+_d_us:  addiu a0, a0, -1
+        nop
+        nop
+        bne   a0, zero, _d_us
+        nop
+_d_use: jr    ra
+        nop
+        .end    delay_us
+        #----------------------------------------------------------------
+
+        #================================================================
+        # delays processing by a0 times 1 mili second
+        #   loop takes 5 cycles = 100ns @ 50MHz
+        #   1.000.000ns / 100 = 10.000
+        .text
+        .set    noreorder
+        .ent    delay_ms
+delay_ms:
+        beq   a0, zero, _d_mse
+        nop
+        li    v0, 10000
+        mul   a0, v0, a0
+        nop
+_d_ms:  addiu a0, a0, -1
+        nop
+        nop
+        bne   a0, zero, _d_ms
+        nop
+_d_mse: jr    ra
+        nop
+        .end    delay_ms
+        #----------------------------------------------------------------
+
+
         ##
         ##================================================================
         ## put the interrupt and trap vectors here, at start of RAM

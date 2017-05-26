@@ -2,7 +2,7 @@
 
 #define	UART_FIFO_SIZE	1	/* chars in UART onboard output FIFO	*/
 
-#define UART_SPEED 4
+#define UART_SPEED 5
 
 // cannot get GCC to generate good code with bitfields
 //  thus, lots of defines

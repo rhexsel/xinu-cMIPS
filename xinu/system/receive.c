@@ -13,6 +13,9 @@ umsg32	receive(void)
 	umsg32	msg;			/* message to return		*/
 
 	mask = disable();
+
+	// kprintf("rcv b\n");
+
 	prptr = &proctab[currpid];
 	if (prptr->prhasmsg == FALSE) {
 		prptr->prstate = PR_RECV;
@@ -20,6 +23,9 @@ umsg32	receive(void)
 	}
 	msg = prptr->prmsg;		/* retrieve message		*/
 	prptr->prhasmsg = FALSE;	/* reset message flag		*/
+
+	// kprintf("rcv e\n");
+
 	restore(mask);
 	return msg;
 }

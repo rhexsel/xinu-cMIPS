@@ -57,7 +57,7 @@ elf:  xinu.elf prog.bin data.bin
 		--section .sdata --section .sbss --section .bss \
 		--section .rodata xinu.elf >ELF
 
-prog.bin: xinu.elf data.bin
+prog.bin: xinu.elf data.bin 
 	${OBJCOPY} -S -j .text -O binary xinu.elf prog.bin
 	mv prog.bin data.bin ../../
 
@@ -90,7 +90,7 @@ export
 ################
 # Make targets #
 ################
-xinu.elf: ${COMP_OBJ} ../lib/libxc.a
+xinu.elf: ${COMP_OBJ} ../lib/libxc.a ../system/start.o
 	@${LD} -o $@ ${LDFLAGS} $^
 
 vdump:

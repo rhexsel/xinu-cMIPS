@@ -2,6 +2,7 @@
 
 #include <xinu.h>
 
+
 struct	ptnode	*ptfree;		/* list of free message nodes	*/
 struct	ptentry	porttab[NPORTS];	/* port table			*/
 int32	ptnextid;			/* next table entry to try	*/
