@@ -21,20 +21,18 @@ MAKEDEP  = gcc -M -MG
 INCLUDE  = -I../include 
 
 # C compilation flags -Werror
-CFLAGS = -O2 -EL -Wall -Wstrict-prototypes -Wno-trigraphs	\
-	-nostdinc -fno-builtin 	\
-	-G 0	\
-	-Wa,-mips32 -Wa,--trap	\
-	-mno-branch-likely                                      \
-	-mcode-readable=no					\
+CFLAGS = -O2 -EL -Wall -Wstrict-prototypes -Wno-trigraphs \
+	-nostdinc -fno-builtin -mabi=32 -mno-abicalls \
+	-G 0 -mno-branch-likely -fomit-frame-pointer -fno-pic \
+	-mno-mad -mno-fp-exceptions -mcode-readable=no -mlong32 \
+	-Wa,-mips32 -Wa,--trap \
 	${INCLUDE} -c
 
-
-#	-mno-abicalls -mabi=32 -march=mips32r2	\
+#	-mabi=32 -march=mips32r2	\
 #	-Wa,-32 -Wa,-march=mips32r2 -Wa,-mips32r2 -Wa,--trap	\
-#	-fomit-frame-pointer -fno-pic -ffunction-sections -G 0	\
+#	 -ffunction-sections -G 0	\
 #	-nostdinc -fno-strict-aliasing -fno-common	\
-#	-mlong-calls -mno-abicalls -mabi=32 -march=mips32r2	\
+#	-mlong-calls  
 
 # Assembler flags
 ASFLAGS  = -EL ${INCLUDE} -march=mips32r2 -mips32r2

@@ -18,6 +18,7 @@ int32 n; // shared variable
 int prod(sid32, sid32);
 int cons(sid32, sid32);
 
+#define EOT 0x04
 
 sid32 produced, consumed; // shared variable
 
@@ -29,7 +30,7 @@ sid32 produced, consumed; // shared variable
 
 int main(void) {  // int argc, char **argv) {
 
-  int i, fibo, pid_cons, pid_prod;
+  int i, j, fibo, pid_cons, pid_prod;
   n = 0;
 
   consumed = semcreate(0);  //semaphore
@@ -68,15 +69,21 @@ int main(void) {  // int argc, char **argv) {
 
 
   kprintf("%s\n", "main()");
+
+#if 0
   while (TRUE) {
-    
-    for (i = 1; i < 46; i++) {
+#else
+  for (j=0; j < 5; j++) {
+#endif    
+    for (i = 0; i < 45; i++) {
       fibo = fibonacci(i);
       kprintf("%-6x\n", fibo);
     }
   }
   return OK;
-}
+
+} //------------------------------------------------------------------
+
 
 int fibonacci(int32 n) {
   int32 i;
@@ -95,7 +102,7 @@ int fibonacci(int32 n) {
     f2 = fi;
   }
   return fi;
-}
+} //----------------------------------------------------------------------
 
 
 int prA(){
@@ -106,7 +113,7 @@ int prA(){
     i += 1;
   }
   return(i);
-}
+} //----------------------------------------------------------------------
 
 int prB(){
   int i = 0;
@@ -116,7 +123,7 @@ int prB(){
     i += 1;
   }
   return(i);
-}
+} //----------------------------------------------------------------------
 
 //consumidor
 int cons(sid32 consumed, sid32 produced) {
@@ -132,7 +139,7 @@ int cons(sid32 consumed, sid32 produced) {
   }
   kprintf("\tcons end\n");
   return(i);
-}
+} //----------------------------------------------------------------------
 
 //produtor
 int prod(sid32 consumed, sid32 produced) {
@@ -148,10 +155,8 @@ int prod(sid32 consumed, sid32 produced) {
   }
   kprintf("\tprod end\n");
   return(i);
-}
+} //----------------------------------------------------------------------
 
-
-#define EOT 0x04
 
 int echo() {
   char c;
@@ -169,4 +174,4 @@ int echo() {
   kprintf("%x\n", i);
 
   return(i);
-}
+} //----------------------------------------------------------------------

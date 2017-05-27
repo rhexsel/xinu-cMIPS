@@ -61,14 +61,11 @@ typedef struct UARTdriver {
 
 // convert small integer (i<16) to hexadecimal digit
 static inline unsigned char i2c(int i) {
-  char c;
-  c = ( ((i) < 10) ? ((i)+'0') : (((i & 0x0f)+'a')-10) );
-  return c;
+  return ( ((i) < 10) ? ((i)+'0') : (((i & 0x0f)+'a')-10) );
 }
 
 // convert hexadecimal digit to integer (i<16)
 static inline unsigned int c2i(char c) {
-  int i;
-  i = ((c) <= '9') ? ((c)-'0') : (((c)-'a')+10) ;
-  return i;
+  return ( ((c) <= '9') ? ((c)-'0') : (((c)-'a')+10) );
 }
+
