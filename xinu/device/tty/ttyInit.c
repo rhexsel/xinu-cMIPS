@@ -52,7 +52,7 @@ devcall	ttyInit(
 
   uptr = (struct uart_csreg *)devtab[CONSOLE].dvcsr;
 
-  uptr->ctl.i = UART_CTL_RTS | UART_SPEED;
+  // uptr->ctl.i = UART_CTL_RTS | UART_SPEED;
 
   /* Register the interrupt handler for the dispatcher */
 
@@ -64,8 +64,8 @@ devcall	ttyInit(
 
   uptr->ctl.i = UART_CTL_RTS | UART_CTL_intTX | UART_CTL_intRX | UART_SPEED;
 
-  // do not kickstart interrupts because remote unit has not started yet RH
-  // ttyKickOut(typtr, uptr);
+  // ??? do not kickstart interrupts because remote unit has not started yet RH
+  ttyKickOut(typtr, uptr);
 
   return OK;
 }

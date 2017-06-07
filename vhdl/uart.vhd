@@ -839,7 +839,7 @@ entity remota is
   constant EOT : reg8 := x"04";      -- end of transmission character
 end remota;
 
-architecture behavior of remota is
+architecture simulation of remota is
 
   component counter8 is
     port(clk, rst, ld, en: in  std_logic;
@@ -1169,6 +1169,12 @@ begin
   end process U_bit_rt_rx;
 
   
-end behavior;
+end architecture simulation;
 -- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+
+architecture fake of remota is
+begin  -- fake
+  outDat <= 'X';
+end architecture fake;
+-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

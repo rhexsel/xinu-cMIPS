@@ -12,15 +12,18 @@ void	ttyKickOut(
 	 struct uart_csreg *uptr	/* address of UART's CSRs	*/
 	)
 {
+  volatile struct uart_csreg *u;
+
+  u = uptr;	                       /* address of UART's CSRs	*/
 
   /* Set output interrupts on the UART */
 
-  uptr->ctl.i = UART_CTL_RTS | UART_CTL_intTX | UART_CTL_intRX | UART_SPEED;
+  // u->ctl.i = UART_CTL_RTS | UART_CTL_intTX | UART_CTL_intRX | UART_SPEED;
 
   /*  if device is idle, generate an output interrupt    */
 
-  if ( (uptr->stat.i & UART_STA_txEmpty) != 0) {
-    uptr->interr.i = UART_INT_setTX;
+  if ( (u->stat.i & UART_STA_txEmpty) != 0) {
+    u->interr.i = UART_INT_setTX;
   }
 
   return;

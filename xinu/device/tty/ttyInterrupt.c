@@ -10,8 +10,8 @@ interrupt ttyInterrupt(void)
 {
   struct dentry	    *devptr;	/* pointer to devtab entry	*/
   struct ttycblk    *typtr;	/* pointer to ttytab entry	*/	
-  struct uart_csreg *uptr;	/* address of UART's CSRs	*/
-  int    iir;	                /* interrupt identification	*/
+  struct uart_csreg *uptr;	/* address of UART's CSRs */
+  volatile int       iir;       /* interrupt identification	*/
 
   /* For now, the CONSOLE is the only serial device */
 
