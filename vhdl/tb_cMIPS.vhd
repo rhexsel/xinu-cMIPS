@@ -402,6 +402,22 @@ architecture TB of tb_cMIPS is
     outclk : OUT STD_LOGIC); 
   end component mf_altclkctrl;
 
+  -- use simulation / fake
+  for U_from_stdin : from_stdin use entity work.from_stdin(simulation);
+
+  -- use simulation / fake
+  for U_print_data : print_data use entity work.print_data(simulation);
+
+  -- use simulation / fake
+  for U_to_stdout : to_stdout  use entity  work.to_stdout(simulation);
+
+  -- use simulation / fake
+  for U_write_out : write_data_file
+                               use entity  work.write_data_file(simulation);
+
+  -- use simulation / fake
+  for U_read_inp  : read_data_file
+                               use entity  work.read_data_file(simulation);
   
   -- use fake / behavioral
     for U_I_CACHE : I_cache use entity work.I_cache(fake);
@@ -422,6 +438,8 @@ architecture TB of tb_cMIPS is
   for U_SDRAMc : SDRAM_controller
                           use entity work.SDRAM_controller(simple);
 
+  -- use simulation / fake
+  for U_uart_remota: remota use entity work.remota(simulation);
 
 
   

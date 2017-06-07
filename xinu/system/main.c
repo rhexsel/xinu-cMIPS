@@ -1,177 +1,181 @@
 /*  main.c  - main */
-
 #include <xinu.h>
 #include <ramdisk.h>
+//#include <cMIPS.h>
 
 extern process shell(void);
 
 int fibonacci(int n);
+void receive_fib(void);
+void send_fib(void);
 
-int prA(void);
-int prB(void);
-int echo(void);
+int32 n;
+pid32 pid_dest;
 
-int32 n; // shared variable
+char str1[256];
+char str2[256];
 
-// #define PROC_VOID FALSE
+#define EOT 0xfffffffe
+#define END 0xffffffff
 
-int prod(sid32, sid32);
-int cons(sid32, sid32);
+// convert small integer (i<16) to hexadecimal digit
+static inline unsigned char i2c(int i) {
+  return ( ((i) < 10) ? ((i)+'0') : (((i & 0x0f)+'a')-10) );
+}
 
-#define EOT 0x04
+// convert hexadecimal digit to integer (i<16)
+static inline unsigned int c2i(char c) {
+  return ( ((c) <= '9') ? ((c)-'0') : (((c)-'a')+10) );
+}
 
-sid32 produced, consumed; // shared variable
+int to_int(volatile char *str){
 
-/************************************************************************/
-/*									*/
-/* main - main program that Xinu runs as the first user process		*/
-/*									*/
-/************************************************************************/
+    int number = 0;
+    int i = 0;
 
-int main(void) {  // int argc, char **argv) {
+    while ( str[i] != '\n' ) {
+      number = number << 4;
+      number += c2i(str[i++]);
+    }
 
-  int i, j, fibo, pid_cons, pid_prod;
+    return number;
+}
+
+int to_str(volatile char *str, unsigned int number){
+	unsigned int i, j, k, l;
+
+    i = 0;
+    l = number;
+    k = number;
+
+    do {
+        ++i;
+        k = k >> 4;
+    } while( k != 0);
+
+    str[i] = '\n';
+
+    for ( j = i; j > 0;){
+        k = number & 15;
+        number = number >> 4;
+        str[--j] = i2c(k);
+    }
+
+
+
+    if (l == END){
+      i = 0;
+      str[i] = 0x04;
+    }
+
+	return i+1;
+}
+
+void receive_fib(){
+  int j = 0;
+  char c;
+
+  do {
+    c = getc(CONSOLE);
+
+    if (c != EOT){
+      str1[j++] = c;
+    } else {
+      while ( send(pid_dest, (umsg32)END) == SYSERR ) {
+        sleep(1);
+      }
+    }
+
+    if (c == '\n') {
+
+      if (j != 1) {
+        while ( send(pid_dest, (umsg32)to_int(str1)) == SYSERR ) {
+          sleep(1);
+        }
+      }
+
+      j = 0;
+    }
+
+  } while (c != EOT);
+
+  kprintf("receive_fib() done\n");
+  return;
+}
+
+void send_fib(){
+    umsg32 msg;
+    unsigned int i, j, k, fibo;
+
+    do{
+      msg = receive();
+      i = (unsigned int)msg;
+
+      if (i != END){
+        fibo = fibonacci(i);
+      } else {
+        fibo = END;
+      }
+
+      k = to_str(str2,fibo);
+
+      kprintf("-->  ");
+
+      for (j = 0; j < k; ++j){
+        putc(CONSOLE, str2[j]);
+        kprintf("%c", str2[j]);
+      }
+    }while (i != END);
+
+    kprintf("\n");
+
+    i = 0;
+    while(i < 100){sleep(1);}
+
+    kprintf("send_fib() done\n");
+    return;
+}
+
+int main(void){
+
+  int i, fibo;
   n = 0;
 
-  consumed = semcreate(0);  //semaphore
-  produced = semcreate(1);
-  // kprintf("sem c=%x q(%x)  p=%x q(%x)\n", consumed, semtab[consumed].squeue,
-  // 	  produced, semtab[produced].squeue);
-
-  //create(ender, espaco na pilha, prior, nome, num argumentos)
-#if 0
-  if ( (pid_prod = create(prod, 4096, 20, "prod", 2,consumed,produced))
-       == SYSERR )
-    kprintf("err cre prod\n");
-
-  if ( (pid_cons = create(cons, 4096, 20, "cons", 2,consumed,produced))
-       == SYSERR )
-    kprintf("err cre cons\n");
-
-  kprintf("pid cons=%x prod=%x\n", pid_cons, pid_prod);
-
-  if ( resume(pid_cons) == SYSERR ) kprintf("err res cons\n");
-  if ( resume(pid_prod) == SYSERR ) kprintf("err res prod\n");
-#endif
-
-#if 1
-  if ( resume(create(prA, 4096, 30, "pr_A", 0)) == (pri16)SYSERR )
-    kprintf("err pr_A\n");
+  control( CONSOLE, TC_MODER, 0,0);
   
-  if ( resume(create(prB, 4096, 31, "pr_B", 0)) == (pri16)SYSERR )
-    kprintf("err prB\n");
-#endif
 
 #if 1
-  if ( resume(create(echo, 4096, 35, "echo", 0)) == (pri16)SYSERR )
-    kprintf("err echo\n");
-#endif  
+  if ( resume(pid_dest = create(send_fib, 4096, 31, "pr_A", 0)) == (pri16)SYSERR )
+    kprintf("err receive\n");
 
+  if ( resume(create(receive_fib, 4096, 30, "pr_B", 0)) == (pri16)SYSERR )
+    kprintf("err send\n");
+#endif
 
-  kprintf("%s\n", "main()");
-
-#if 0
   while (TRUE) {
-#else
-  for (j=0; j < 5; j++) {
-#endif    
-    for (i = 0; i < 45; i++) {
+    for (i = 1; i < 46; i++) {
       fibo = fibonacci(i);
-      kprintf("%-6x\n", fibo);
+      //kprintf("-- %x\n", fibo);
     }
   }
   return OK;
-
-} //------------------------------------------------------------------
-
+}
 
 int fibonacci(int32 n) {
   int32 i;
   int32 f1 = 0;
   int32 f2 = 1;
-  int32 fi = 0;;
-  
+  int32 fi = 0;
+
   if (n == 0)
     return 0;
   if(n == 1)
     return 1;
-  
+
   for(i = 2 ; i <= n ; i++ ) {
     fi = f1 + f2;
     f1 = f2;
     f2 = fi;
   }
   return fi;
-} //----------------------------------------------------------------------
-
-
-int prA(){
-  int i = 0;
-  while (i < 6){
-    kprintf("\tpr_A\n");
-    sleep(1);
-    i += 1;
-  }
-  return(i);
-} //----------------------------------------------------------------------
-
-int prB(){
-  int i = 0;
-  while (i < 6){
-    kprintf("\tpr_B\n");
-    sleep(3);
-    i += 1;
-  }
-  return(i);
-} //----------------------------------------------------------------------
-
-//consumidor
-int cons(sid32 consumed, sid32 produced) {
-
-  int32 i;
-  kprintf("\tcons sta\n");
-  for(i=0 ; i<=10 ; i++) {
-    // if (wait(produced) != OK) kprintf("\nerr cons w(p)\n\n");
-    wait(produced);
-    kprintf("\tc %x\n", n);
-    // if (signal(consumed) != OK) kprintf("\nerr cons s(c)\n\n");
-    signal(consumed);
-  }
-  kprintf("\tcons end\n");
-  return(i);
-} //----------------------------------------------------------------------
-
-//produtor
-int prod(sid32 consumed, sid32 produced) {
-  int32 i;
-  kprintf("\tprod sta\n");
-  for(i=0 ; i<10 ; i++) {
-    // if (wait(consumed) != OK) kprintf("\nerr prod w(c)\n\n");
-    wait(consumed);
-    n++;
-    kprintf("\tp %x\n", n);
-    signal(produced);
-    // if (signal(produced) != OK) kprintf("\nerr prod s(p)\n\n");
-  }
-  kprintf("\tprod end\n");
-  return(i);
-} //----------------------------------------------------------------------
-
-
-int echo() {
-  char c;
-  int  i;
-
-  kprintf("%s\n", "echo()");
-
-  i = 0;
-  do {
-    c = getc(CONSOLE);
-    putc(CONSOLE, c);
-    i += 1;
-  } while (c != EOT);
-
-  kprintf("%x\n", i);
-
-  return(i);
-} //----------------------------------------------------------------------
+}

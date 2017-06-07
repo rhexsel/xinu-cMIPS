@@ -62,7 +62,8 @@ devcall	ttyInit(
 
   enable_irq(devptr->dvirq);
 
-  uptr->ctl.i = UART_CTL_RTS | UART_CTL_intTX | UART_CTL_intRX | UART_SPEED;
+  // uptr->ctl.i = UART_CTL_RTS | UART_CTL_intTX | UART_CTL_intRX | UART_SPEED;
+  uptr->ctl.i = UART_CTL_RTS | UART_CTL_intRX | UART_SPEED;
 
   // ??? do not kickstart interrupts because remote unit has not started yet RH
   ttyKickOut(typtr, uptr);
