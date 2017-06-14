@@ -20,7 +20,6 @@ interrupt clkhandler(void)
 	if (clkticks == CLKTICKS_PER_SEC) {
 		clktime++;
 		clkticks = 0;
-		// kprintf("\ttime++\n");
 	}
 
 	/* If sleep queue is nonempty, decrement first key; when the	*/
@@ -34,7 +33,6 @@ interrupt clkhandler(void)
 
 	if ((--preempt) <= 0) {
 		preempt = QUANTUM;
-		// kprintf("\tresched\n");
 		resched();
 	}
 	return;

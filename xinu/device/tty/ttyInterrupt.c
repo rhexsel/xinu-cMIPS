@@ -37,14 +37,14 @@ interrupt ttyInterrupt(void)
   /* to coordinate with the upper half of the driver		*/
 
   // Receiver data available
-  if ( (iir & UART_STA_rxFull) != 0 ) {
-    uptr->interr.i = UART_INT_clrRX;  // clear interrupt request
+  if ( (iir & UART_STA_rxFull) != 0 ) { // clear interrupt request
+    uptr->interr.i = uptr->interr.i | UART_INT_clrRX;
     ttyInter_in(typtr, uptr);         // get new char
   }
 
   // Transmitter output FIFO is empty (i.e., ready for more)	*/
-  if ( (iir & UART_STA_txEmpty) != 0 ) {
-    uptr->interr.i = UART_INT_clrTX;  // clear interrupt request
+  if ( (iir & UART_STA_txEmpty) != 0 ) { // clear interrupt request
+    uptr->interr.i = uptr->interr.i | UART_INT_clrTX;  
     ttyInter_out(typtr, uptr);
   }
 

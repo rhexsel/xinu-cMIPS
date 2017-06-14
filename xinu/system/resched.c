@@ -24,7 +24,7 @@ void	resched(void)		/* assumes interrupts are disabled	*/
 
 	if (ptold->prstate == PR_CURR) {  /* process remains running */
 		if (ptold->prprio > firstkey(readylist)) {
-			// kprintf("keep %s pri %x\n", ptold->prname, ptold->prprio);
+                   // kprintf("keep %s pri %x\n", ptold->prname, ptold->prprio);
 		   return;
 		}
 

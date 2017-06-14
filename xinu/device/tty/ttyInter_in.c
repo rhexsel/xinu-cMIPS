@@ -62,6 +62,7 @@ void	ttyInter_in (
     if (ch == typtr->tyostart) {	    /* ^Q starts output	*/
       typtr->tyoheld = FALSE;
       ttyKickOut(typtr, uptr);
+      kprintf("^Q\n");
       return;
     } else if (ch == typtr->tyostop) {  /* ^S stops	output	*/
       typtr->tyoheld = TRUE;

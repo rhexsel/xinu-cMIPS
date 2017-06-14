@@ -8,15 +8,15 @@
 //  thus, lots of defines
 
 #define UART_CTL_RTS   0x80
-#define UART_CTL_intTX 0x10
-#define UART_CTL_intRX 0x08
+
+// program UART to rise an interrupt on TX-empty, or RX-full
+#define UART_INT_intTX 0x02
+#define UART_INT_intRX 0x01
 
 typedef struct control { // control register fields (uses only ls byte)
   unsigned int ign : 24, // ignore uppermost 3 bytes
     rts     : 1,         // Request to Send output (bit 7)
-    ign2    : 2,         // bits 6,5 ignored
-    intTX   : 1,         // interrupt on TX buffer empty (bit 4)
-    intRX   : 1,         // interrupt on RX buffer full (bit 3)
+    ign4    : 4,         // bits 6,5,4,3 ignored
     speed   : 3;         // 4,8,16... {tx,rx}clock data rates  (bits 2,1,0)
 } Tctl;
 
@@ -55,15 +55,19 @@ typedef union status {
 #define UART_INT_setRX  0x20
 #define UART_INT_clrTX  0x10
 #define UART_INT_clrRX  0x08
+#define UART_INT_progTX 0x02
+#define UART_INT_progRX 0x01
 
 typedef struct inter {   // interrupt clear bits (uses only ls byte)
   unsigned int ign : 24, // ignore uppermost 3 bytes
-    ign1    : 1,         // bit 7 ignored
+    igna    : 1,         // bit 7 ignored
     setTX   : 1,         // set   IRQ on TX buffer empty (bit 6)
     setRX   : 1,         // set   IRQ on RX buffer full (bit 5)
     clrTX   : 1,         // clear IRQ on TX buffer empty (bit 4)
     clrRX   : 1,         // clear IRQ on RX buffer full (bit 3)
-    ign3    : 3;         // bits 2,1,0 ignored
+    ignb    : 1,         // bit 2 ignored
+    intTX   : 1,         // program interrupt on TX buffer empty (bit 1)
+    intRX   : 1;         // program interrupt on RX buffer full (bit 0)
 } Tinter;
 
 typedef union interr {
@@ -79,9 +83,9 @@ typedef union interr {
  */
 struct	uart_csreg
 {
-  volatile       Tcontrol ctl;  // RD+WR, addr (int *)IO_UART_ADDR
-  const volatile Tstatus  stat; // RD,    addr (int *)(IO_UART_ADDR+1)
-  Tinterr               interr; // WR,    addr (int *)(IO_UART_ADDR+2)
-  volatile int            data; // RD+WR, addr (int *)(IO_UART_ADDR+3)
+  volatile       Tcontrol ctl;    // RD+WR, addr (int *)IO_UART_ADDR
+  const volatile Tstatus  stat;   // RO,    addr (int *)(IO_UART_ADDR+1)
+  volatile       Tinterr  interr; // RD+WR, addr (int *)(IO_UART_ADDR+2)
+  volatile int            data;   // RD+WR, addr (int *)(IO_UART_ADDR+3)
 };
 

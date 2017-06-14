@@ -64,7 +64,7 @@ _start:
 	/* Clear interrupt related registers in the coprocessor */
 
         # STATUS: cop0, no interrupts enabled, kern mode
-        li      k0, 0x1000e000
+        li      k0, 0x1000f000
 	mtc0	k0, CP0_STATUS		/* Clear interrupt masks	*/
 
 	# COUNTER disabled, separate interr vector
@@ -110,8 +110,8 @@ _start:
 	sw	s0, 0(t0)
 
 
-        # STATUS: cop0, hw interrupt IRQ7,IRQ6,IRQ5 enabled, user mode
-        li      k0, 0x1000e011
+        # STATUS: cop0, hw interrupt IRQ7,IRQ6,IRQ5,IRQ4 enabled, user mode
+        li      k0, 0x1000f011
 	mtc0	k0, c0_status		/* Clear interrupt masks	*/
 
 	# enable COUNTER, separate interr vector
@@ -374,7 +374,7 @@ uart:	addiu   sp, sp, -8	# make room in stack
 	# exlreset();		/* Reset system-wide exception bit */
 	li      a2, ~STATUS_EXL
         and     v0, a1, a2
-	mtc0    v0, CP0_STATUS
+	mtc0    a1, CP0_STATUS
 	
 	# (*handler) ();	/* Invoke device-specific handler  */
 	jal ttyInterrupt
@@ -387,14 +387,13 @@ uart:	addiu   sp, sp, -8	# make room in stack
         li      a2, STATUS_EXL
         or      v0, v0, a2
         mtc0    v0, CP0_STATUS
-	
-	j   restore
+	j   _restore
 	nop
 	
 clk:	jal clkhandler		  # clk handler MUST return to this address
 	nop
 
-restore:
+_restore:
         lw      t0, IRQREC_HI(sp)       /*  restore all state           */
         lw      t1, IRQREC_LO(sp)
         mthi    t0
@@ -437,14 +436,14 @@ dismiss:
 	lw    k0, IRQREC_STATUS(sp)     /* Restore global status reg    */
         addiu sp, sp, IRQREC_SIZE       /* Restore stack pointer        */
         ori   k0, k0, M_StatusIEn 
+
+	addi  k1, zero, -3         // leave exception mode
+	and   k0, k0, k1           // check this
+
 	mtc0  k0, CP0_STATUS
         eret                            /* Return from interrupt        */
-	
-	nop         # one needs to separate the WAIT from the ERET
-	nop         #  WAIT is decoded and stops simulation before ERET
-	nop         #  had time to execute and return to interrupted instrn.
 	nop
-	wait 0x1c   # Should never get to this point.  Abort simulation.
+	nop
         .end _excp_0200
         #----------------------------------------------------------------
 

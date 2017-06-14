@@ -21,6 +21,8 @@ void clkinit(void) {
 
 	clkticks = 0;		/* start counting one second		*/
 
+	clktime  = 0;           // current time is zero
+
 	/* Add clock interrupt handler to interrupt vector array */
 
 	// interruptVector[IRQ_TIMER] = &clkhandler;

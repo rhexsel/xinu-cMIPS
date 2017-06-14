@@ -36,17 +36,18 @@ entity core is
     phi3   : in    std_logic;
     i_aVal : out   std_logic;
     i_wait : in    std_logic;
-    i_addr : out   std_logic_vector;
-    instr  : in    std_logic_vector;
+    i_addr : out   reg32;
+    instr  : in    reg32;
     d_aVal : out   std_logic;
     d_wait : in    std_logic;
-    d_addr : out   std_logic_vector;
-    data_inp : in  std_logic_vector;
-    data_out : out std_logic_vector;
-    wr     : out   std_logic;
-    b_sel  : out   std_logic_vector;
-    nmi    : in    std_logic;
-    irq    : in    std_logic_vector;
+    d_addr : out   reg32;
+    data_inp : in  reg32;
+    data_out : out reg32;
+    wr       : out std_logic;
+    b_sel    : out reg4;
+    busFree  : out std_logic;
+    nmi      : in  std_logic;
+    irq      : in  reg6;
     i_busErr : in  std_logic;
     d_busErr : in  std_logic);
 end core;
@@ -137,7 +138,7 @@ architecture rtl of core is
   signal annul_1, annul_2, annul_twice : std_logic;
   signal interrupt, exception_stall : std_logic;
   signal dly_i0, dly_i1, dly_i2, dly_interr: std_logic; 
-  signal exception_taken, interrupt_taken : std_logic;
+  signal exception_taken, interrupt_taken, tlb_excp_taken : std_logic;
   signal nullify_fetch, nullify, MM_nullify : boolean;
   signal addrError, MM_addrError, abort_ref, MM_ll_sc_abort : boolean;
   signal PC_abort, RF_PC_abort, EX_PC_abort : boolean;
@@ -779,10 +780,10 @@ begin
 
 
   -- uncomment this when NOT making use of the TLB
-  i_addr <= PC_aligned;    -- fetch instruction from aligned address
+  i_addr <= PC_aligned;    -- fetch instrn from aligned address, without TLB
 
   -- uncomment this when making use of the TLB
-  -- i_addr <= phy_i_addr;
+  -- i_addr <= phy_i_addr; -- with TLB
 
   nullify_fetch <= (MM_tlb_exception and not(MM_tlb_stage_mm));
 
@@ -1451,6 +1452,7 @@ begin
   
   abort_ref <= (addrError or (tlb_exception and tlb_stage_mm));
 
+  busFree <= EX_aVal_cond;
 
   -- ----------------------------------------------------------------------
   PIPESTAGE_EX_MM: reg_EX_MM
@@ -1802,7 +1804,7 @@ begin
   int_req(1) <= irq(1);
   int_req(0) <= irq(0);
 
-  interrupt <= int_req(5) or int_req(4) or int_req(3) or int_req(3) or
+  interrupt <= int_req(5) or int_req(4) or int_req(3) or int_req(2) or
                int_req(1) or int_req(0) or
                CAUSE(CAUSE_IP1) or CAUSE(CAUSE_IP0);
 
@@ -1880,6 +1882,8 @@ begin
               is_SC, MM_is_SC, is_MFC0, MM_is_MFC0,
               EX_is_exception, is_exception);
 
+  -- exception_dec <= exception_type'pos(is_exception);  -- debugging only
+
    
   -- STATUS -- pg 79 -- cop0_12 --------------------
   COP0_DECODE_EXCEPTION_AND_UPDATE_STATUS:
@@ -1917,7 +1921,7 @@ begin
     newSTATUS(STATUS_CU1) := '0';  -- COP-1 absent (always)
     newSTATUS(STATUS_CU0) := '1';  -- COP-0 present=1 (always)
     newSTATUS(STATUS_RP)  := '0';  -- reduced power (always)
-
+    
     case is_exception is
 
       when exMTC0 =>            -- move to COP-0
@@ -1940,7 +1944,6 @@ begin
             i_stall  := '0';
             i_update := '0';
         end case;
-
         
       when exEI =>              -- enable interrupts
         newSTATUS(STATUS_IE) := '1';
@@ -1954,10 +1957,8 @@ begin
         i_update_r := cop0reg_STATUS;
         i_stall    := '0';
 
-        
       when exMFC0 =>                    -- move from COP-0
         i_stall := '0';                 -- register selection below
-
         
       when exERET =>                    -- EXCEPTION RETURN
         newSTATUS(STATUS_EXL) := '0';   -- leave exception level
@@ -1966,9 +1967,9 @@ begin
         i_stall      := '0';            -- do not stall
         i_nullify    := TRUE;           -- nullify instructions in IF,RF
 
+
       -- when processor goes into exception-level, IRQs are ignored,
       --   hence disabled
-
         
       when exSYSCALL | exBREAK =>       -- SYSCALL, BREAK
         i_stall    := '0';
@@ -2104,7 +2105,6 @@ begin
         i_nullify       := TRUE;            -- nullify instructions in IF,RF,EX
         exception_taken <= '1';        
 
-
       when exTLBrefillRD | exTLBrefillWR =>
         case is_exception is
           when exTLBrefillRD =>
@@ -2127,7 +2127,6 @@ begin
         i_nullify    := TRUE;           -- nullify instructions in IF,RF,EX
         exception_taken <= '1';
         
-
       when exTLBdblFaultIF | exTLBinvalIF  =>
         ExcCode <= cop0code_TLBL;
         if RF_is_delayslot = '1' then   -- instr is in delay slot
@@ -2142,7 +2141,6 @@ begin
         i_update_r   := cop0reg_STATUS;
         i_epc_update := '0';
         i_nullify    := TRUE;           -- nullify instructions in IF,RF,EX
-        exception_taken <= '1';
 
 
       when exTLBdblFaultRD | exTLBdblFaultWR |
@@ -2168,7 +2166,6 @@ begin
         i_update_r   := cop0reg_STATUS;
         i_epc_update := '0';
         i_nullify    := TRUE;          -- nullify instructions in IF,RF,EX
-        exception_taken <= '1';
 
 
       when exIBE | exDBE =>             -- BUS ERROR
@@ -2181,9 +2178,9 @@ begin
         i_update   := '1';
         i_update_r := cop0reg_STATUS;
         i_nullify  := TRUE;             -- nullify instructions in IF,RF,EX
-        exception_taken <= '1';        
+        exception_taken <= '1';
         
-
+        
       when exInterr =>                  -- normal interrupt
         if (rom_stall = '0') and (ram_stall = '0') then
           assert TRUE report "interrupt PC="&SLV32HEX(PC) severity note;
@@ -2372,14 +2369,18 @@ begin
   COP0_STATUS: register32 generic map (RESET_STATUS)
     port map (clk, rst, status_update, STATUSinp, STATUS);
 
-   
 
+  
+  U_DLY_TLB_EXCP: FFD
+    port map (clk, rst, '1', BOOL2SL(tlb_exception), tlb_excp_taken);
+    
   -- CAUSE -- pg 92-- cop0_13 --------------------------
   COP0_COMPUTE_CAUSE: process(rst, clk)
                               -- update, update_reg,
-                              -- MM_int_req, ExcCode, cop0_inp, is_delayslot,
+                              -- MM_int_req, cop0_inp, is_delayslot,
                               -- count_eq_compare,
-                              -- interrupt_taken, exception_taken,
+                              -- ExcCode, interrupt_taken, exception_taken,
+                              -- tlb_excp_taken)
                               -- STATUS)
     variable branch_delay : std_logic;
     variable excp_code : reg5;
@@ -2391,11 +2392,15 @@ begin
       branch_delay := is_delayslot;     -- may update
     end if;
 
-    if (interrupt_taken = '1') or (exception_taken = '1') then
+    if ( (interrupt_taken = '1') or (exception_taken = '1') or
+         (tlb_excp_taken = '1') ) then
       excp_code := ExcCode;             -- record new exception      
+    elsif ( (is_exception = exMFC0) and (MM_cop0_reg = cop0reg_CAUSE) ) then
+      excp_code := cop0code_NULL;       -- clear code when sw reads CAUSE
     else
-      excp_code := CAUSE(CAUSE_ExcCodehi downto CAUSE_ExcCodelo);  -- hold
+      excp_code := CAUSE(CAUSE_ExcCodeHi downto CAUSE_ExcCodeLo);  -- hold
     end if;
+
     
     if rst = '0' then
       CAUSE <= RESET_CAUSE;
@@ -2436,7 +2441,6 @@ begin
   end process COP0_COMPUTE_CAUSE;
 
 
-  
   -- EPC -- pg 97 -- cop0_14 -------------------
   with epc_source select EPCinp <=
     PC              when EPC_src_PC,    -- instr fetch exception

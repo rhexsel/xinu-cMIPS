@@ -56,9 +56,7 @@ package p_MEMORY is
   constant x_EXCEPTION_BFC0 : reg32   := x"00000680";  -- NMI, soft-reset
   constant x_ENTRY_POINT    : reg32   := x"00000700";  -- main()
   -- end DO NOT change these names --
- 
-  -- constant z_exception_bfc0 : reg32   := x"00000600";  -- NMI, soft-reset
-  -- constant z_entry_point    : reg32   := x"00000700";  -- main()
+
 
   constant INST_BASE_ADDR  : integer := to_integer(signed(x_INST_BASE_ADDR));
   constant INST_MEM_SZ     : integer := to_integer(signed(x_INST_MEM_SZ));
@@ -93,6 +91,7 @@ package p_MEMORY is
   constant IO_KEYBD_ADDR   : integer := IO_BASE_ADDR + 10*IO_ADDR_RANGE;
   constant IO_LCD_ADDR     : integer := IO_BASE_ADDR + 11*IO_ADDR_RANGE;
   constant IO_SDC_ADDR     : integer := IO_BASE_ADDR + 12*IO_ADDR_RANGE;
+  constant IO_DMA_ADDR     : integer := IO_BASE_ADDR + 13*IO_ADDR_RANGE;
   constant IO_HIGHEST_ADDR : integer :=
     IO_BASE_ADDR + (IO_MAX_NUM_DEVS - 1)*IO_ADDR_RANGE;
 

@@ -15,7 +15,7 @@ syscall	sleep (
   if (delay > MAXSECONDS) {
     return(SYSERR);
   }
-  sleepms(4*delay);  // testing only
+  sleepms(2*delay);  // testing only
   // sleepms(1000*delay);
   return OK;
 }

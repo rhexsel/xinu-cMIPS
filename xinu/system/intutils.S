@@ -25,8 +25,10 @@ enable:
 	/* IE = 1: Master enable bit for SW and HW  */
 	li	a2, STATUS_IE
 	or	v0, a1, a2
-	jr	ra
 	mtc0	v0, CP0_STATUS
+	ehb
+	jr	ra
+	nop
 	.set reorder
 	.end enable
 
@@ -39,15 +41,17 @@ disable:
 	.set noreorder
 	mfc0	v0, CP0_STATUS
  	li	a0, ~STATUS_IE
-	and	a1, v0, a0
+	and	a0, v0, a0
+	mtc0	a0, CP0_STATUS
+	ehb
 	jr	ra
-	mtc0	a1, CP0_STATUS
+	nop
 	.set reorder
 	.end disable
 
 /*------------------------------------------------------------------------
  * restore - restore interrupts according to argument and return previous
- *			state
+ *		state, restore(last_mask);
  *------------------------------------------------------------------------
  */
 	.ent restore
@@ -56,8 +60,10 @@ restore:
 	mfc0	a1, CP0_STATUS
 	nop
 	or	v0, a1, a0
-	jr	ra
 	mtc0	v0, CP0_STATUS
+	ehb
+	jr	ra
+	nop
 	.set reorder
 	.end restore
 
@@ -77,8 +83,10 @@ enable_cpuirq:
 	li	a2, 1
 	sllv	a2, a2, a0	# a2 <- 1 << (8 + irqNum)
 	or	v0, a1, a2	# v0 <- STATUS OR (irqNUM <<)
-	jr	ra		
 	mtc0	v0, CP0_STATUS	# STATUS <- v0
+	ehb
+	jr	ra		
+	nop
 	.set reorder
 	.end enable_cpuirq
 		
@@ -92,8 +100,10 @@ exlreset:
 	mfc0	a1, CP0_STATUS
 	li	a2, ~STATUS_EXL
 	and	v0, a1, a2
-	jr	ra
 	mtc0	v0, CP0_STATUS
+	ehb
+	jr	ra
+	nop
 	.set reorder
 	.end exlreset
 
@@ -107,7 +117,9 @@ exlset:
 	mfc0	a1, CP0_STATUS
 	li	a2, STATUS_EXL
 	or	v0, a1, a2
-	jr	ra
 	mtc0	v0, CP0_STATUS
+	ehb
+	jr	ra
+	nop
 	.set reorder
 	.end exlset

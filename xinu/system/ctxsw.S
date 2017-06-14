@@ -73,10 +73,14 @@ ctxsw:
 	/* If this is a newly created process, ensure */
 	/*    it starts with interrupts enabled       */
 
-	beq	v0, ra, ctxdone
+	//beq	v0, ra, ctxdone  // check this
 	nop
 	mfc0	v1, CP0_STATUS
 	ori	v1, v1, STATUS_IE
+
+	addi t0, zero, -3  // IRQs enabled AND leave exception level
+	and  v1, v1, t0    // check this 
+
 	mtc0	v1, CP0_STATUS
 
 ctxdone:

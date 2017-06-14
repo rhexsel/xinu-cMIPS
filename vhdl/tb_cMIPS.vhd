@@ -51,6 +51,28 @@ architecture TB of tb_cMIPS is
           irq        : out std_logic);    -- interrupt request (not yet used)
   end component SDCard;
   
+  component DISK is
+    port (rst      : in    std_logic;
+          clk      : in    std_logic;
+          strobe   : in    std_logic;     -- strobe for file reads/writes
+          sel      : in    std_logic;
+          rdy      : out   std_logic;
+          wr       : in    std_logic;
+          busFree  : in    std_logic;     -- '1' = bus will be free next cycle
+          busReq   : out   std_logic;     -- '1' = bus will be used next cycle
+          busGrant : in    std_logic;     -- '1' = bus is free in this cycle
+          addr     : in    reg3;
+          data_inp : in    reg32;
+          data_out : out   reg32;
+          irq      : out   std_logic;
+          dma_addr : out   reg32;
+          dma_dinp : in    reg32;
+          dma_dout : out   reg32;
+          dma_wr   : out   std_logic;
+          dma_aval : out   std_logic;
+          dma_type : out   reg4);
+  end component DISK;
+
   component LCD_display is
     port (rst      : in    std_logic;
           clk      : in    std_logic;
@@ -233,6 +255,7 @@ architecture TB of tb_cMIPS is
           keybd_sel   : out std_logic;
           lcd_sel     : out std_logic;
           sdc_sel     : out std_logic;
+          dma_sel     : out std_logic;
           not_waiting : in  std_logic);
   end component io_addr_decode;
 
@@ -371,10 +394,11 @@ architecture TB of tb_cMIPS is
           d_addr : out   std_logic_vector;
           data_inp : in  std_logic_vector;
           data_out : out std_logic_vector;
-          wr     : out   std_logic;
-          b_sel  : out   std_logic_vector;
-          nmi    : in    std_logic;
-          irq    : in    std_logic_vector;
+          wr       : out std_logic;
+          b_sel    : out std_logic_vector;
+          busFree  : out std_logic;
+          nmi      : in  std_logic;
+          irq      : in  std_logic_vector;
           i_busErr : in  std_logic;
           d_busErr : in  std_logic);
   end component core;
@@ -402,6 +426,7 @@ architecture TB of tb_cMIPS is
     outclk : OUT STD_LOGIC); 
   end component mf_altclkctrl;
 
+
   -- use simulation / fake
   for U_from_stdin : from_stdin use entity work.from_stdin(simulation);
 
@@ -413,14 +438,14 @@ architecture TB of tb_cMIPS is
 
   -- use simulation / fake
   for U_write_out : write_data_file
-                               use entity  work.write_data_file(simulation);
+                     use entity  work.write_data_file(simulation);
 
   -- use simulation / fake
   for U_read_inp  : read_data_file
-                               use entity  work.read_data_file(simulation);
-  
+                    use entity  work.read_data_file(simulation);
+ 
   -- use fake / behavioral
-    for U_I_CACHE : I_cache use entity work.I_cache(fake);
+  for U_I_CACHE : I_cache use entity work.I_cache(fake);
 
   -- use simulation / rtl
   for U_ROM : ROM         use entity work.ROM(simulation);
@@ -439,8 +464,16 @@ architecture TB of tb_cMIPS is
                           use entity work.SDRAM_controller(simple);
 
   -- use simulation / fake
-  for U_uart_remota: remota use entity work.remota(simulation);
+  for U_DISK : DISK       use entity work.DISK(simulation);
+  
+  -- use fake / rtl
+  for U_SDcard : SDcard   use entity work.SDcard(fake);
 
+  -- use fake / rtl
+  for U_LCD_display : LCD_display use entity work.LCD_display(fake);
+  
+  -- use simulation / fake
+  for U_uart_remota: remota use entity work.remota(simulation);
 
   
   signal clock_50mhz, clk,clkin : std_logic;
@@ -449,7 +482,7 @@ architecture TB of tb_cMIPS is
   signal rst,ic_reset,a_rst1,a_rst2,a_rst3, cpu_reset : std_logic;
   signal a_reset, async_reset : std_logic;
   signal cpu_i_aVal, cpu_i_wait, wr, cpu_d_aVal, cpu_d_wait : std_logic;
-  signal nmi, i_busError, d_busError : std_logic;
+  signal busFree, nmi, i_busError, d_busError : std_logic;
   signal irq : reg6;
   signal inst_aVal, inst_wait, rom_rdy : std_logic;
   signal data_aVal, data_wait, ram_rdy, mem_wr : std_logic;
@@ -469,9 +502,10 @@ architecture TB of tb_cMIPS is
   signal io_fpu_sel,     io_fpu_wait     : std_logic := '1';
   signal io_lcd_sel,     io_lcd_wait     : std_logic := '1';
   signal io_sdc_sel,     io_sdc_wait     : std_logic := '1';
+  signal io_dma_sel     : std_logic := '1';
   signal d_cache_d_out, stdin_d_out, read_d_out, counter_d_out : reg32;
   signal fpu_d_out, uart_d_out, sstats_d_out, keybd_d_out : reg32;
-  signal lcd_d_out, sdc_d_out, sdram_d_out : reg32;
+  signal lcd_d_out, sdc_d_out, sdram_d_out, dma_d_out : reg32;
 
   signal counter_irq : std_logic;
   signal io_wait, not_waiting : std_logic;
@@ -492,11 +526,10 @@ architecture TB of tb_cMIPS is
   signal key : reg12;                  -- 12 key telephone keyboard
   signal sw : reg4;                     -- 4 slide switches
   signal led_r, led_g, led_b : std_logic;  -- RGB leds (on board signals)
-  signal LCD_DATA : std_logic_vector(7 downto 0);  -- LCD data bus
-  signal LCD_RS, LCD_RW, LCD_EN, LCD_BLON : std_logic;  -- LCD control
+  signal LCD_D : std_logic_vector(7 downto 0);  -- LCD data bus
+  signal LCD_RS, LCD_RW, LCD_EN, LCD_BACKLIGHT : std_logic;  -- LCD control
   signal uart_txd, uart_rxd, uart_rts, uart_cts, uart_irq : std_logic;
   signal sdc_cs, sdc_clk, sdc_mosi_o, sdc_miso_i : std_logic;
-
   
   signal sdcke, sdscs, sdras, sdcas, sdwe : std_logic;  -- SDRAM
   signal sddqm0, sddqm1, sdba0, sdba1 : std_logic;
@@ -504,9 +537,13 @@ architecture TB of tb_cMIPS is
   signal sddata : reg16;
   signal hDinp, hDout : reg32;
 
-  
-begin  -- TB
+  -- disk device, simulation only
+  signal dma_addr, dma_dinp, dma_dout, ram_addr, ram_inp : reg32;
+  signal dma_wr, ram_wr, dma_aval, dma_irq, ram_sel : std_logic;
+  signal dma_type, ram_xfer : reg4;
+  signal busReq, busFree_dly, dma_grant : std_logic;
 
+begin  -- TB
 
   pll : mf_altpll port map (areset => a_reset, inclk0 => clock_50mhz,
    c0 => phi0in, c1 => phi1in, c2 => phi2in, c3 => phi3in, c4 => clkin);
@@ -543,31 +580,32 @@ begin  -- TB
   
   cpu_i_wait <= inst_wait;
   cpu_d_wait <= data_wait and io_wait and sdram_wait;
-  io_wait    <= '1'; -- io_lcd_wait and io_fpu_wait and io_sdc_wait;
+  io_wait    <= io_lcd_wait and io_fpu_wait and io_sdc_wait;
 
-  not_waiting <= (inst_wait and data_wait); -- and sdram_wait); and io_wait);
+  not_waiting <= (inst_wait and data_wait and sdram_wait); --  and io_wait);
 
-  -- Count=Compare at IRQ7, UART at IRQ6, extCounter at IRQ5
-  -- C=C U E 0 0 0 sw1 sw0
-  irq <= '0' & uart_irq & counter_irq & b"000"; -- uart+counter interrupts
-  -- irq <= b"00" & counter_irq & b"000"; -- counter interrupts
+  -- Count=Compare at IRQ7, UART at IRQ6, DMA at IRQ5, extCounter at IRQ4,
+  -- C=C U D E 0 0 sw1 sw0
+  -- uart+dma_disk+counter interrupts
+
+  irq <= ZERO & uart_irq & dma_irq & counter_irq & ZERO & ZERO;
+
   -- irq <= b"000000"; -- NO interrupt requests
-  nmi <= '0'; -- input port to TB
+  nmi <= NO; -- input port to TB
 
   U_CORE: core
     port map (cpu_reset, clk, phi1,phi2,phi3,
               cpu_i_aVal, cpu_i_wait, i_addr, cpu_instr,
               cpu_d_aVal, cpu_d_wait, d_addr, cpu_data_inp, cpu_data,
-              wr, cpu_xfer, nmi, irq, i_busError, d_busError);
+              wr, cpu_xfer, busFree, nmi, irq, i_busError, d_busError);
 
   U_INST_ADDR_DEC: inst_addr_decode
     port map (rst, cpu_i_aVal, i_addr, inst_aVal, i_busError);
   
-  -- U_I_CACHE: i_cache_fpga  -- or FPGA implementation 
   U_I_CACHE: i_cache
     port map (rst, clk4x, ic_reset,
-              inst_aVal, inst_wait, i_addr,      cpu_instr,
-              mem_i_sel,  rom_rdy,   mem_i_addr, datrom, cnt_i_ref,cnt_i_hit);
+              inst_aVal, inst_wait, i_addr,     cpu_instr,
+              mem_i_sel, rom_rdy, mem_i_addr, datrom, cnt_i_ref,cnt_i_hit);
 
   U_ROM: ROM generic map ("prog.bin")
     port map (rst, clk, mem_i_sel,rom_rdy, phi3, mem_i_addr,datrom);
@@ -578,10 +616,10 @@ begin  -- TB
 
   U_IO_ADDR_DEC: io_addr_decode
     port map (rst, phi0, cpu_d_aVal, d_addr, dev_select_io,
-              io_print_sel, io_stdout_sel, io_stdin_sel,io_read_sel, 
-              io_write_sel, io_counter_sel, io_fpu_sel, io_uart_sel,
-              io_sstats_sel, io_7seg_sel, io_keys_sel, io_lcd_sel,
-              io_sdc_sel, not_waiting);
+              io_print_sel, io_stdout_sel,  io_stdin_sel, io_read_sel, 
+              io_write_sel, io_counter_sel, io_fpu_sel,   io_uart_sel,
+              io_sstats_sel, io_7seg_sel,   io_keys_sel,  io_lcd_sel,
+              io_sdc_sel,   io_dma_sel,     not_waiting);
 
   U_DATA_ADDR_DEC: ram_addr_decode
     port map (rst, cpu_d_aVal, d_addr,data_aVal, dev_select_ram);
@@ -603,6 +641,7 @@ begin  -- TB
                     lcd_d_out       when b"1101",
                     sdc_d_out       when b"1110",
                  --    sdram_d_out     when b"1110",
+                    dma_d_out       when b"1111",
                     (others => 'X') when others;
   
   U_D_CACHE: d_cache
@@ -613,10 +652,33 @@ begin  -- TB
               mem_addr,  datram_inp, datram_out,   mem_xfer,
               cnt_d_ref, cnt_d_rd_hit, cnt_d_wr_hit, cnt_d_flush);
 
-  U_RAM: RAM generic map ("data.bin", "dump.data")
-    port map (rst, clk, mem_d_sel, ram_rdy, mem_wr, phi2,
-              mem_addr, datram_out, datram_inp, mem_xfer, dump_ram);
 
+  U_BUSFREE_DLY: FFD port map (clk, rst, '1', busFree, busFree_dly);
+
+  dma_grant <= busFree_dly and busReq;
+    
+  ram_xfer <= dma_type when dma_grant = YES else mem_xfer;
+  ram_addr <= dma_addr when dma_grant = YES else mem_addr;
+  ram_wr   <= dma_wr   when dma_grant = YES else mem_wr;
+  ram_sel  <= '0'      when dma_grant = YES else mem_d_sel;
+  ram_inp  <= dma_dout when dma_grant = YES else datram_out;
+  
+  U_RAM: RAM generic map ("data.bin", "dump.data")
+    port map (rst, clk, ram_sel, ram_rdy, ram_wr, phi3,
+              ram_addr, ram_inp, datram_inp, ram_xfer, dump_ram);
+
+  -- U_RAM: RAM generic map ("data.bin", "dump.data")
+  --   port map (rst, clk, mem_d_sel, ram_rdy, mem_wr, phi2,
+  --             mem_addr, datram_out, datram_inp, mem_xfer, dump_ram);
+
+  -- busReq <= '0';  
+  U_DISK: DISK
+    port map  (rst,clk, phi1, io_dma_sel,  open, wr, -- '1', open,
+               busFree, busReq, dma_grant,
+               d_addr(4 downto 2), cpu_data, dma_d_out, dma_irq,
+               dma_addr, datram_inp, dma_dout, dma_wr, dma_aval, dma_type);
+
+  
   U_SDRAMc: SDRAM_controller port map 
     (rst, clk, clk2x, sdram_aVal, sdram_wait, wr,
      cpu_xfer, d_addr(25 downto 0), hDinp,hDout,
@@ -639,12 +701,10 @@ begin  -- TB
   U_print_data: print_data
     port map (rst,clk, io_print_sel, wr, cpu_data);
 
-
   
   U_interrupt_counter: do_interrupt     -- external counter+interrupt
     port map (rst,clk, io_counter_sel, wr, cpu_data,
               counter_d_out, counter_irq);
-
 
   
   U_to_7seg: to_7seg
@@ -661,7 +721,7 @@ begin  -- TB
   U_LCD_display: LCD_display
     port map (rst, clk, io_lcd_sel, io_lcd_wait,
               wr, d_addr(2), cpu_data, lcd_d_out,
-              lcd_data, lcd_rs, lcd_rw, lcd_en, lcd_blon);
+              lcd_d, lcd_rs, lcd_rw, lcd_en, lcd_backlight);
   
   U_simple_uart: simple_uart
     port map (rst,clk, io_uart_sel, wr, d_addr(3 downto 2),
@@ -967,6 +1027,7 @@ entity io_addr_decode is                -- CPU side triggers access
         keybd_sel   : out std_logic;    -- telephone keyboard (act=0)
         lcd_sel     : out std_logic;    -- LCD 2x16 char display (act=0)
         sdc_sel     : out std_logic;    -- SDcard reader/writer (act=0)
+        dma_sel     : out std_logic;    -- DMA/disk controller (act=0)
         not_waiting : in  std_logic);   -- no other device is waiting
 end entity io_addr_decode;
 
@@ -1022,6 +1083,7 @@ begin
     constant is_keybd   : integer := 12;
     constant is_lcd     : integer := 13;
     constant is_sdc     : integer := 14;
+    constant is_dma     : integer := 15;
   begin
 
     print_sel   <= '1';
@@ -1037,6 +1099,7 @@ begin
     keybd_sel   <= '1';
     lcd_sel     <= '1';
     sdc_sel     <= '1';
+    dma_sel     <= '1';
 
     case dev is -- to_integer(signed(addr(HI_ADDR downto LO_ADDR))) is
       when  0 => dev_sel     := std_logic_vector(to_signed(is_print, 4));
@@ -1065,6 +1128,8 @@ begin
                  lcd_sel     <= aVal;
       when 12 => dev_sel     := std_logic_vector(to_signed(is_sdc, 4));
                  sdc_sel     <= aVal;
+      when 13 => dev_sel     := std_logic_vector(to_signed(is_dma, 4));
+                 dma_sel     <= aVal or clk;
       when others => dev_sel := std_logic_vector(to_signed(is_noise, 4));
     end case;
     assert TRUE report "IO_addr "& SLV32HEX(addr);  -- DEBUG

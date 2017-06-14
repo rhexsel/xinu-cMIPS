@@ -61,9 +61,9 @@ syscall kgetc(void)
   devptr = (struct dentry *) &devtab[CONSOLE];
   regptr = (struct uart_csreg *)devptr->dvcsr;
 
-  irmask = regptr->ctl.i ;      /* Save UART interrupt state.   */
-  off = irmask & ~UART_CTL_intTX & UART_CTL_intRX;
-  regptr->ctl.i = off;          /* Disable UART interrupts.     */
+  irmask = regptr->interr.i;     /* Save UART interrupt state.   */
+  off = 0x00; // irmask & ~UART_INT_progTX & ~UART_INT_progRX;
+  regptr->interr.i = off;        /* Disable UART interrupts.     */
 
   while ( 0 == (regptr->stat.i & UART_STA_rxFull) ) {
     // Do Nothing
@@ -71,7 +71,7 @@ syscall kgetc(void)
 
   /* read character from data register */
   c = regptr->data;
-  regptr->ctl.i = irmask;        /* Restore UART interrupts.     */
+  regptr->interr.i = irmask;     /* Restore UART interrupts.     */
   return c;
 }
 

@@ -18,14 +18,11 @@ void	ttyInter_out(
   int32	avail;			/* available chars in output buf*/
   int32	uspace;			/* space left in onboard UART	*/
 				/*   output FIFO		*/
-  volatile int ctrl;
-
 
   /* If output is currently held, turn off output interrupts */
 
-  if (typtr->tyoheld) {
-    ctrl = uptr->ctl.i;
-    uptr->ctl.i = ctrl & ~UART_CTL_intTX;
+  if (typtr->tyoheld == TRUE) {
+    uptr->interr.i = uptr->interr.i & ~UART_INT_progTX;
     return;
   }
 
@@ -33,9 +30,7 @@ void	ttyInter_out(
 
   if ( (typtr->tyehead == typtr->tyetail) &&
        (semcount(typtr->tyosem) >= TY_OBUFLEN) ) {
-    ctrl = uptr->ctl.i;
-    uptr->ctl.i = ctrl & ~UART_CTL_intTX;
-    // kprintf("\nq empty");
+    uptr->interr.i = uptr->interr.i & ~UART_INT_progTX; // check this
     return;
   }
 
@@ -59,7 +54,8 @@ void	ttyInter_out(
 
   ochars = 0;
   avail = TY_OBUFLEN - semcount(typtr->tyosem);
-  while ( (uspace>0) &&  (avail > 0) ) {
+  while ( (uspace > 0) &&  (avail > 0) ) {
+    // kprintf("\n\t\ttxq %c\n", *typtr->tyohead);
     uptr->data = *typtr->tyohead++;
     if (typtr->tyohead >= &typtr->tyobuff[TY_OBUFLEN]) {
       typtr->tyohead = typtr->tyobuff;

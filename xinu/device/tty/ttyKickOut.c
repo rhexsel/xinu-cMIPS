@@ -18,12 +18,12 @@ void	ttyKickOut(
 
   /* Set output interrupts on the UART */
 
-  // u->ctl.i = UART_CTL_RTS | UART_CTL_intTX | UART_CTL_intRX | UART_SPEED;
+  u->interr.i = u->interr.i | UART_INT_progTX;
 
   /*  if device is idle, generate an output interrupt    */
 
   if ( (u->stat.i & UART_STA_txEmpty) != 0) {
-    u->interr.i = UART_INT_setTX;
+    u->interr.i = u->interr.i | UART_INT_setTX;
   }
 
   return;

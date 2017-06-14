@@ -27,8 +27,8 @@ devcall	ttyInit(
   typtr->tyosem = semcreate(TY_OBUFLEN); /* output semaphore	*/
   typtr->tyehead = typtr->tyetail = 	/* set up echo queue	*/
     &typtr->tyebuff[0];		        /*    as empty		*/
-  typtr->tyimode = TY_IMCOOKED;		/* start in cooked mode	*/
-  typtr->tyiecho = TRUE;		/* echo console input	*/
+  typtr->tyimode = TY_IMRAW; //TY_IMCOOKED;	/* start in cooked mode	*/
+  typtr->tyiecho = FALSE;  //TRUE;		/* echo console input	*/
   typtr->tyieback = TRUE;		/* honor erasing bksp	*/
   typtr->tyevis = TRUE;			/* visual control chars	*/
   typtr->tyecrlf = TRUE;		/* echo CRLF for NEWLINE*/
@@ -44,15 +44,13 @@ devcall	ttyInit(
   typtr->tyoheld = FALSE;		/* output not held	*/
   typtr->tyostop = TY_STOPCH;		/* stop char is ^S	*/
   typtr->tyostart = TY_STRTCH;		/* start char is ^Q	*/
-  typtr->tyocrlf = TRUE;		/* send CRLF for NEWLINE*/
+  typtr->tyocrlf = FALSE; // TRUE;		/* send CRLF for NEWLINE*/
   typtr->tyifullc = TY_FULLCH;		/* send ^G when buffer	*/
 					/*   is full		*/
 
   /* Initialize the UART */
 
   uptr = (struct uart_csreg *)devtab[CONSOLE].dvcsr;
-
-  // uptr->ctl.i = UART_CTL_RTS | UART_SPEED;
 
   /* Register the interrupt handler for the dispatcher */
 
@@ -62,11 +60,12 @@ devcall	ttyInit(
 
   enable_irq(devptr->dvirq);
 
-  // uptr->ctl.i = UART_CTL_RTS | UART_CTL_intTX | UART_CTL_intRX | UART_SPEED;
-  uptr->ctl.i = UART_CTL_RTS | UART_CTL_intRX | UART_SPEED;
+  uptr->ctl.i = UART_CTL_RTS | UART_SPEED;
 
-  // ??? do not kickstart interrupts because remote unit has not started yet RH
-  ttyKickOut(typtr, uptr);
+  uptr->interr.i = UART_INT_progRX | UART_INT_progRX;
+
+  // do not kickstart interrupts because remote unit has not started yet RH
+  // ttyKickOut(typtr, uptr);
 
   return OK;
 }

@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.37 (w)1999-2012 BSI
-[*] Sat May 27 13:13:00 2017
+[*] Wed Jun 14 04:34:13 2017
 [*]
 [dumpfile] "/home/roberto/xinu-cMIPS/cMIPS.vcd"
-[dumpfile_mtime] "Sat May 27 12:48:53 2017"
-[dumpfile_size] 661364150
+[dumpfile_mtime] "Wed Jun 14 04:27:31 2017"
+[dumpfile_size] 680673280
 [savefile] "/home/roberto/xinu-cMIPS/v_irx.sav"
-[timestart] 194380000000
+[timestart] 509000000000
 [size] 1350 1018
 [pos] -1 -1
-*-32.000000 203740000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-37.747101 1293800000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] u_simple_uart.
 [sst_width] 210
 [signals_width] 221
@@ -21,22 +21,20 @@ clk
 u_core.pc[31:0]
 @28
 u_core.exception_taken
+[color] 1
 u_core.interrupt_taken
-[color] 2
+[color] 1
 u_core.annul_twice
-@22
-u_core.exception_dec[31:0]
-@28
 [color] 3
 u_core.count_eq_compare
 [color] 1
 u_simple_uart.irq
+@24
+u_core.exception_dec[31:0]
 @200
 -    decode, reg fetch
 @22
 u_core.rf_instruction[31:0]
-u_core.regs_a[31:0]
-u_core.regs_b[31:0]
 @200
 -    exec
 @22
@@ -45,13 +43,16 @@ u_core.alu_inp_b[31:0]
 u_core.result[31:0]
 u_core.v_addr[31:0]
 @28
-u_core.ex_aval_cond
+u_core.ex_aval
 @200
 -  COP0
 @22
 u_core.epc[31:0]
 u_core.cause[31:0]
+[color] 1
 u_core.status[31:0]
+u_core.compare[31:0]
+u_core.exccode[4:0]
 @200
 -    memory
 @28
@@ -67,8 +68,9 @@ u_core.mm_wrmem
 -    write-back
 @28
 u_core.wb_wreg
-@22
+@24
 u_core.wb_a_c[4:0]
+@22
 u_core.wb_c[31:0]
 @200
 -  UART
@@ -76,7 +78,10 @@ u_core.wb_c[31:0]
 u_simple_uart.u_uart.s_stat
 @22
 u_simple_uart.u_uart.status[7:0]
-[color] 2
+@28
+u_simple_uart.u_uart.s_ctrlwr
+@22
+[color] 5
 u_simple_uart.u_uart.ctrl[7:0]
 @28
 u_simple_uart.u_uart.s_rx
@@ -84,22 +89,24 @@ u_simple_uart.u_uart.s_rx
 u_simple_uart.u_uart.received[7:0]
 [color] 1
 u_simple_uart.u_uart.txreg[7:0]
-@200
--  reception
 @28
+u_simple_uart.u_uart.s_intwr
+[color] 5
+u_simple_uart.u_uart.interr[1:0]
 [color] 2
 u_simple_uart.u_uart.interr_rx_full
+u_simple_uart.u_uart.interr_tx_empty
+@200
+-   serial comm
+@28
 u_simple_uart.u_uart.rxclk
 u_simple_uart.u_uart.rxdat
-[color] 2
-u_simple_uart.u_uart.interr_tx_empty
 u_simple_uart.u_uart.txclk
 u_simple_uart.u_uart.txdat
 @200
 -  REMOTE (fake) UART
 @24
+u_uart_remota.rx_dbg_st[31:0]
 u_uart_remota.tx_dbg_st[31:0]
-@28
-u_uart_remota.inpdat
 [pattern_trace] 1
 [pattern_trace] 0
