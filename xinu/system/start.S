@@ -271,7 +271,7 @@ excp_tbl: # see Table 8-25, pg 95,96
 	.extern clkhandler
 	
         .set M_CauseIM,0x0000ff00   # keep bits 15..8 -> IM = IP
-        .set M_StatusIEn,0x0000e311 # user mode, enable irq7,irq6,irq1,irq0
+        .set M_StatusIEn,0x0000f311 # user mode, enable irq7..4,irq1,irq0
 
         .set noreorder
 
@@ -280,12 +280,14 @@ excp_tbl: # see Table 8-25, pg 95,96
 excp_0200:
 _excp_0200:
 
+	# copied from intdispatch.S
+	
 save:	addiu   sp, sp, -IRQREC_SIZE    /* Allocate space on stack      */
         mfc0    k1, CP0_EPC             /* Save interrupted PC value    */
         sw      AT, IRQREC_AT(sp)       /* Save assembler temp reg first*/
 	sw      k1, IRQREC_EPC(sp)
         .set at
-        .set reorder
+        # .set reorder
         sw      v0, IRQREC_V0(sp)       /* Save all general purpose regs*/
         sw      v1, IRQREC_V1(sp)
         sw      a0, IRQREC_A0(sp)
@@ -340,7 +342,7 @@ dispatch:
 	nop
 	
 handlers_tbl:
-        wait 0x18                 # no request: 000
+        wait 0x18                 # no request: 000, abort simulation
 	nop
 	
         wait 0x19 # j extCounter  # lowest priority, IRQ5: 001
@@ -390,9 +392,33 @@ uart:	addiu   sp, sp, -8	# make room in stack
 	j   _restore
 	nop
 	
-clk:	jal clkhandler		  # clk handler MUST return to this address
+
+	# mask = disable();	/* Disable interrupts for duration */
+clk:	addiu   sp, sp, -8	# make room in stack
+        mfc0    v0, CP0_STATUS
+        li      a0, ~STATUS_IE
+        and     a1, v0, a0
+	sw      v0, 4(sp)	# and save STATUS there
+	
+	# exlreset();		/* Reset system-wide exception bit */
+	li      a2, ~STATUS_EXL
+        and     v0, a1, a2
+	mtc0    a1, CP0_STATUS
+	
+	# (*handler) ();	/* Invoke device-specific handler  */
+	jal clkhandler		  # clk handler MUST return to this address
 	nop
 
+	# exlset();		/* Set system-wide exception bit   */
+	# restore(mask);
+	lw      v0, 4(sp)	# recover saved STATUS
+	addiu   sp, sp, 8
+        li      a2, STATUS_EXL
+        or      v0, v0, a2
+        mtc0    v0, CP0_STATUS
+	# j   _restore
+	# nop
+	
 _restore:
         lw      t0, IRQREC_HI(sp)       /*  restore all state           */
         lw      t1, IRQREC_LO(sp)

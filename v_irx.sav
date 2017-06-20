@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.37 (w)1999-2012 BSI
-[*] Wed Jun 14 04:34:13 2017
+[*] Tue Jun 20 12:24:24 2017
 [*]
 [dumpfile] "/home/roberto/xinu-cMIPS/cMIPS.vcd"
-[dumpfile_mtime] "Wed Jun 14 04:27:31 2017"
-[dumpfile_size] 680673280
+[dumpfile_mtime] "Tue Jun 20 12:02:50 2017"
+[dumpfile_size] 1306728053
 [savefile] "/home/roberto/xinu-cMIPS/v_irx.sav"
-[timestart] 509000000000
+[timestart] 1451380000000
 [size] 1350 1018
 [pos] -1 -1
-*-37.747101 1293800000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-32.747101 1472530000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] u_simple_uart.
 [sst_width] 210
 [signals_width] 221

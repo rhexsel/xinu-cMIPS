@@ -27,7 +27,7 @@ savestate:
 	sw	k1, IRQREC_EPC(sp)
 	sw	k0, IRQREC_STATUS(sp)
 	.set at
-	.set reorder
+	// .set reorder
 	sw	v0, IRQREC_V0(sp)       /* Save all general purpose regs*/
 	sw	v1, IRQREC_V1(sp)
 	sw	a0, IRQREC_A0(sp)
@@ -58,7 +58,7 @@ savestate:
 	sw	sp, IRQREC_SP(sp)
 	sw	fp, IRQREC_S9(sp)
 	sw	ra, IRQREC_RA(sp)
-	# sw	zero, IRQREC_ZER(sp)
+	// sw	zero, IRQREC_ZER(sp)
 	mfhi	t0                      /* Save hi and lo               */
 	mflo	t1
 	sw	t0, IRQREC_HI(sp)
@@ -67,7 +67,8 @@ savestate:
 	lw	a0, IRQREC_CAUSE(sp)    /* Pass cause and state info to */
 	move	a1, sp                  /*  high-level dispatcher       */
 	jal	dispatch
-
+	nop
+	
 restorestate:                           /* On return from dispatcher    */
 	lw	t0, IRQREC_HI(sp)       /*  restore all state           */
 	lw	t1, IRQREC_LO(sp)

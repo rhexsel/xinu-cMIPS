@@ -30,6 +30,10 @@ char *interrupts[] = {
  *------------------------------------------------------------------------
  */
 
+//
+// Xinu-cMIPS dispatches interrupts directly at start.S;
+//   this code is not used
+
 void	dispatch(
 	  int32	cause,		/* identifies interrupt cause 		*/
 	  int32	*frame		/* pointer to interrupt frame that	*/
