@@ -11,7 +11,11 @@ int prA(void);
 int prB(void);
 int echo(void);
 
+int leTTY(void);
+int escTTY(void);
+
 int32 n; // shared variable
+int32 pid_esc = -1;
 
 // #define PROC_VOID FALSE
 
@@ -30,7 +34,7 @@ sid32 produced, consumed; // shared variable
 
 int main(void) {  // int argc, char **argv) {
 
-  int i, j, fibo, pid_cons, pid_prod;
+  int i, j, fibo;
   n = 0;
 
   // remove echo-ing of input chars, remove \d from "\n\d"
@@ -44,6 +48,7 @@ int main(void) {  // int argc, char **argv) {
 
   //create(ender, espaco na pilha, prior, nome, num argumentos)
 #if 0
+  int pid_prod, pid_cons;
   if ( (pid_prod = create(prod, 4096, 20, "prod", 2,consumed,produced))
        == SYSERR )
     kprintf("err cre prod\n");
@@ -59,6 +64,16 @@ int main(void) {  // int argc, char **argv) {
 #endif
 
 #if 1
+  int pid_le;
+  if((pid_le = create(leTTY, 4096, 20, "le", 0)) == SYSERR) {
+    kprintf("err leTTY\n");
+  } else resume(pid_le);
+  if((pid_esc = create(escTTY, 4096, 20, "esc", 0)) == SYSERR) {
+    kprintf("err escTTY\n");
+  } else resume(pid_esc);
+#endif
+
+#if 0
   if ( resume(create(prA, 4096, 30, "pr_A", 0)) == (pri16)SYSERR )
     kprintf("err pr_A\n");
   
@@ -66,7 +81,7 @@ int main(void) {  // int argc, char **argv) {
     kprintf("err prB\n");
 #endif
 
-#if 1
+#if 0
   if ( resume(create(echo, 4096, 35, "echo", 0)) == (pri16)SYSERR )
     kprintf("err echo\n");
 #endif  
@@ -83,20 +98,67 @@ int main(void) {  // int argc, char **argv) {
   kprintf("%s\n", "main()");
 #endif
 
-
 #if 0
   while (TRUE) {
+  }
 #else
   for (j=0; j < 5; j++) {
 #endif    
     for (i = 0; i < 45; i++) {
       fibo = fibonacci(i);
-      kprintf("%-6x\n", fibo);
+      //kprintf("%-6x\n", fibo);
     }
   }
   return OK;
 
 } //------------------------------------------------------------------
+
+int leTTY() {
+  kprintf("\tleTTY start.\n");
+  char entbuf = getc(CONSOLE);
+  int32 curval = 0;
+
+  while(entbuf != EOT) {
+    if(entbuf != '\n') {
+      curval *= 16;
+      curval += (entbuf >= '0' && entbuf <= '9') ? entbuf - '0' : (entbuf - 'a') + 10 ;
+    } else {
+      while(pid_esc == -1) sleep(1);
+      int hasSent;
+      kprintf("\tle  %d\n", curval);
+      do {
+        hasSent = send(pid_esc, curval);
+        if(hasSent == SYSERR) sleep(1);
+      } while(hasSent == SYSERR);
+      curval = 0;
+    }
+    entbuf = getc(CONSOLE);
+  }
+  send(pid_esc, -1);
+  // umsg32 msg = 20;
+  // while(pid_esc == -1) sleep(1);
+  // send(pid_esc, msg);
+  // kprintf("\tleTTY enviou.\n");
+  return 1;
+}
+
+int escTTY() {
+  kprintf("\tescTTY start.\n");
+  
+  int fibvet[45];
+  fibvet[0] = 1;
+  fibvet[1] = 1;
+  for(int i = 2; i < 45; i++) {
+    fibvet[i] = fibvet[i-1] + fibvet[i-2];
+  }
+  
+  umsg32 msg = receive();
+  while(msg != -1) {
+    kprintf("\tesc %d\n", fibvet[msg]);
+    msg = receive();
+  }
+  return 1;
+}
 
 
 int fibonacci(int32 n) {
@@ -172,20 +234,20 @@ int prod(sid32 consumed, sid32 produced) {
 } //----------------------------------------------------------------------
 
 
-int echo() {
-  char c;
-  int  i;
-
-  kprintf("%s\n", "echo()");
-
-  i = 0;
-  do {
-    c = getc(CONSOLE);
-    putc(CONSOLE, c);
-    i += 1;
-  } while (c != EOT);
-
-  kprintf("%x\n", i);
-
-  return(i);
-} //----------------------------------------------------------------------
+//int echo() {
+//  char c;
+//  int  i;
+//
+//  kprintf("%s\n", "echo()");
+//
+//  i = 0;
+//  do {
+//    c = getc(CONSOLE);
+//    putc(CONSOLE, c);
+//    i += 1;
+//  } while (c != EOT);
+//
+//  kprintf("%x\n", i);
+//
+//  return(i);
+//} //----------------------------------------------------------------------
