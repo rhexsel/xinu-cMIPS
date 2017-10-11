@@ -1,30 +1,24 @@
 /*  main.c  - main */
 
 #include <xinu.h>
-// #include <ramdisk.h>
+#include <ramdisk.h>
+#include "fib_vet.h"
+extern process shell(void);
 
-// extern process shell(void);
 
-int fibonacci(int n);
-
-int prA(void);
-int prB(void);
-int echo(void);
-
-int leTTY(void);
-int escTTY(void);
-
+int transmissor();
+int receptor();
+int echo();
+char * to_str(int num, char * buffer);
+int to_int(char * buffer, int len);
 int32 n; // shared variable
-int32 pid_esc = -1;
+int pid_transmissor, pid_receptor;
 
 // #define PROC_VOID FALSE
 
-int prod(sid32, sid32);
-int cons(sid32, sid32);
 
 #define EOT 0x04
 
-sid32 produced, consumed; // shared variable
 
 /************************************************************************/
 /*									*/
@@ -34,220 +28,223 @@ sid32 produced, consumed; // shared variable
 
 int main(void) {  // int argc, char **argv) {
 
-  int i, j, fibo;
-  n = 0;
-
-  // remove echo-ing of input chars, remove \d from "\n\d"
-  control( CONSOLE, TC_NOECHO, 0,0);
-  control( CONSOLE, TC_MODER, 0,0);
-
-  consumed = semcreate(0);  //semaphore
-  produced = semcreate(1);
-  // kprintf("sem c=%x q(%x)  p=%x q(%x)\n", consumed, semtab[consumed].squeue,
-  // 	  produced, semtab[produced].squeue);
-
-  //create(ender, espaco na pilha, prior, nome, num argumentos)
-#if 0
-  int pid_prod, pid_cons;
-  if ( (pid_prod = create(prod, 4096, 20, "prod", 2,consumed,produced))
-       == SYSERR )
-    kprintf("err cre prod\n");
-
-  if ( (pid_cons = create(cons, 4096, 20, "cons", 2,consumed,produced))
-       == SYSERR )
-    kprintf("err cre cons\n");
-
-  kprintf("pid cons=%x prod=%x\n", pid_cons, pid_prod);
-
-  if ( resume(pid_cons) == SYSERR ) kprintf("err res cons\n");
-  if ( resume(pid_prod) == SYSERR ) kprintf("err res prod\n");
+        int i, j, fibo;	// kprintf("sem c=%x q(%x)  p=%x q(%x)\n", consumed, semtab[consumed].squeue,
+        // 	  produced, semtab[produced].squeue);
+#if 1	
+        control( CONSOLE, TC_NOECHO, 0,0);
+        control( CONSOLE, TC_MODER, 0,0);
 #endif
+        //create(ender, espaco na pilha, prior, nome, num argumentos)
+#if 1 
+        if ( (pid_transmissor = create(transmissor, 4096, 20, "transmissor",0))
+                        == SYSERR )
+                kprintf("err create tranmissor\n");
 
-#if 1
-  int pid_le;
-  if((pid_le = create(leTTY, 4096, 20, "le", 0)) == SYSERR) {
-    kprintf("err leTTY\n");
-  } else resume(pid_le);
-  if((pid_esc = create(escTTY, 4096, 20, "esc", 0)) == SYSERR) {
-    kprintf("err escTTY\n");
-  } else resume(pid_esc);
+        if ( (pid_receptor = create(receptor, 4096, 20, "receptor",0))
+                        == SYSERR )
+                kprintf("err create receptor\n");
+
+        kprintf("pid Recv=%x Send=%x\n", pid_receptor, pid_transmissor);
+
+        if ( resume(pid_transmissor) == SYSERR) kprintf("err res trans\n");
+        if ( resume(pid_receptor) == SYSERR) kprintf("err res recv\n");
+#endif
+#if 0
+        if ( resume(create(prA, 4096, 30, "pr_A", 0)) == (pri16)SYSERR )
+                kprintf("err pr_A\n");
+
+        if ( resume(create(prB, 4096, 31, "pr_B", 0)) == (pri16)SYSERR )
+                kprintf("err prB\n");
 #endif
 
 #if 0
-  if ( resume(create(prA, 4096, 30, "pr_A", 0)) == (pri16)SYSERR )
-    kprintf("err pr_A\n");
-  
-  if ( resume(create(prB, 4096, 31, "pr_B", 0)) == (pri16)SYSERR )
-    kprintf("err prB\n");
-#endif
-
-#if 0
-  if ( resume(create(echo, 4096, 35, "echo", 0)) == (pri16)SYSERR )
-    kprintf("err echo\n");
+        if ( resume(create(echo, 4096, 35, "echo", 0)) == (pri16)SYSERR )
+                kprintf("err echo\n");
 #endif  
 
 
-#if 0
-  putc( CONSOLE, '\t' );
-  putc( CONSOLE, 'm' );
-  putc( CONSOLE, 'a' );
-  putc( CONSOLE, 'i' );
-  putc( CONSOLE, 'n' );
-  putc( CONSOLE, '\n' );
+        kprintf("%s\n", "main()");
+
+#if 1
+        while (TRUE) {
 #else
-  kprintf("%s\n", "main()");
+                for (j=0; j < 2; j++) {
+#endif   
+                        for (i = 0; i < 45; i++) {
+                                fibo = fibonacci(i);
+                        }
+                }
+
+                return OK;
+
+        } //------------------------------------------------------------------
+
+
+        int fibonacci(int32 n) {
+                int32 i;
+                int32 f1 = 0;
+                int32 f2 = 1;
+                int32 fi = 0;;
+
+                if (n == 0)
+                        return 0;
+                if(n == 1)
+                        return 1;
+
+                for(i = 2 ; i <= n ; i++ ) {
+                        fi = f1 + f2;
+                        f1 = f2;
+                        //kprintf("%s\n","FIBO()");
+                        f2 = fi;
+                }
+                return fi;
+        } //----------------------------------------------------------------------
+
+
+        //-------------Receiver---------------------
+        int receptor(){
+                char c,buf[9];
+                int i,numero;
+                kprintf("%s\n","receptor()");
+                i=0;
+                numero=0;
+                do{
+                        c=getc(CONSOLE);
+                        buf[i]=c;
+                        i++;
+
+                        if(c=='\n'){
+                                numero = to_int(buf,i-1);
+
+                                i=0;
+#if 0
+
+                                kprintf("-> %s","teste");
+                                send(pid_transmissor,numero);
+#else 			
+                                while(send(pid_transmissor,numero) == SYSERR ) {
+                                        sleep(1);
+                                }
+#endif		
+
+
+                        }
+
+                        if (c == EOT) {
+                            
+                                while(send(pid_transmissor,c) == SYSERR ) {
+                                        sleep(1);
+                                }
+                        }
+
+                }while(c != EOT);
+                return i;
+        }
+
+        //-------------Sender-----------------------
+
+        int transmissor(){
+                kprintf("%s\n","transmissor()");
+                int size,msg,num,i;
+                char buffer[1024];
+                char * ptr;
+                size=9;
+                msg=i=0;
+#if 1		
+                while (1) {
+                        msg=receive();
+
+                        if (msg == EOT) {
+                            break;
+                        }
+
+                        num = dat[msg];
+                        ptr = to_str(num,buffer);
+
+                        do {
+                          putc(CONSOLE,*ptr);
+                        } while (*(ptr++) != '\n');
+                        
+                }
+
 #endif
+                return size;
+        }
+        //-----------------------int to char ----------------------
+        // Acertar para converter em char para o envio...
+        char * to_str(int num,char * buffer) {
 
-#if 0
-  while (TRUE) {
-  }
-#else
-  for (j=0; j < 5; j++) {
-#endif    
-    for (i = 0; i < 45; i++) {
-      fibo = fibonacci(i);
-      //kprintf("%-6x\n", fibo);
-    }
-  }
-  return OK;
+                char * ptr, * buf;
 
-} //------------------------------------------------------------------
+                buf = buffer+32;
 
-int leTTY() {
-  kprintf("\tleTTY start.\n");
-  char entbuf = getc(CONSOLE);
-  int32 curval = 0;
+                *buf = '\n';
+                buf--;
 
-  while(entbuf != EOT) {
-    if(entbuf != '\n') {
-      curval *= 16;
-      curval += (entbuf >= '0' && entbuf <= '9') ? entbuf - '0' : (entbuf - 'a') + 10 ;
-    } else {
-      while(pid_esc == -1) sleep(1);
-      int hasSent;
-      kprintf("\tle  %d\n", curval);
-      do {
-        hasSent = send(pid_esc, curval);
-        if(hasSent == SYSERR) sleep(1);
-      } while(hasSent == SYSERR);
-      curval = 0;
-    }
-    entbuf = getc(CONSOLE);
-  }
-  send(pid_esc, -1);
-  // umsg32 msg = 20;
-  // while(pid_esc == -1) sleep(1);
-  // send(pid_esc, msg);
-  // kprintf("\tleTTY enviou.\n");
-  return 1;
-}
+                for (int i = 0; i < 8; i++) {
 
-int escTTY() {
-  kprintf("\tescTTY start.\n");
-  
-  int fibvet[45];
-  fibvet[0] = 1;
-  fibvet[1] = 1;
-  for(int i = 2; i < 45; i++) {
-    fibvet[i] = fibvet[i-1] + fibvet[i-2];
-  }
-  
-  umsg32 msg = receive();
-  while(msg != -1) {
-    kprintf("\tesc %d\n", fibvet[msg]);
-    msg = receive();
-  }
-  return 1;
-}
+                        char c;
+                        int aux = (num & 0xF);
+
+                        if (aux < 0xA)
+                                c = aux + '0';
+                        else
+                                c = aux - 10 + 'A';
+
+                        *(--buf) = c;
+
+                        if (c != '0')
+                                ptr = buf;
+
+                        num >>= 4;
+
+                }
+
+                return ptr;
+        }
+        //-----------------------char to int ----------------------
+        int to_int(char * buffer, int len) {
+                int pos = len-1;
+                int num = 0;
+                int pow = 0;
+
+                while (pos >= 0) {
+
+                        char c;
+                        int val;
+
+                        c = buffer[pos];
+
+                        if (c < 'A') {
+                                val = c-'0';
+                        } else {
+                                val = c-'A'+10;
+                        }
 
 
-int fibonacci(int32 n) {
-  int32 i;
-  int32 f1 = 0;
-  int32 f2 = 1;
-  int32 fi = 0;;
-  
-  if (n == 0)
-    return 0;
-  if(n == 1)
-    return 1;
-  
-  for(i = 2 ; i <= n ; i++ ) {
-    fi = f1 + f2;
-    f1 = f2;
-    f2 = fi;
-  }
-  return fi;
-} //----------------------------------------------------------------------
+                        num += val << pow;
+                        pos -= 1;
+                        pow += 4;
+                }
 
+                return num;
+        }
 
-int prA(){
-  int i = 0;
-  while (i < 6){
-    kprintf("\tpr_A\n");
-    sleep(1);
-    i += 1;
-  }
-  return(i);
-} //----------------------------------------------------------------------
+        //----------------------echo-----------------------
+        int echo() {
+                char c;
+                int  i;
 
-int prB(){
-  int i = 0;
-  while (i < 6){
-    kprintf("\tpr_B\n");
-    sleep(3);
-    i += 1;
-  }
-  return(i);
-} //----------------------------------------------------------------------
+                kprintf("%s\n", "echo()");
 
-//consumidor
-int cons(sid32 consumed, sid32 produced) {
+                i = 0;
+                do {
+                        c = getc(CONSOLE);
+                        putc(CONSOLE, c);
+                        i += 1;
+                } while (c != EOT);
 
-  int32 i;
-  kprintf("\tcons sta\n");
-  for(i=0 ; i<=10 ; i++) {
-    // if (wait(produced) != OK) kprintf("\nerr cons w(p)\n\n");
-    wait(produced);
-    kprintf("\tc %x\n", n);
-    // if (signal(consumed) != OK) kprintf("\nerr cons s(c)\n\n");
-    signal(consumed);
-  }
-  kprintf("\tcons end\n");
-  return(i);
-} //----------------------------------------------------------------------
+                kprintf("%x\n", i);
 
-//produtor
-int prod(sid32 consumed, sid32 produced) {
-  int32 i;
-  kprintf("\tprod sta\n");
-  for(i=0 ; i<10 ; i++) {
-    // if (wait(consumed) != OK) kprintf("\nerr prod w(c)\n\n");
-    wait(consumed);
-    n++;
-    kprintf("\tp %x\n", n);
-    signal(produced);
-    // if (signal(produced) != OK) kprintf("\nerr prod s(p)\n\n");
-  }
-  kprintf("\tprod end\n");
-  return(i);
-} //----------------------------------------------------------------------
-
-
-//int echo() {
-//  char c;
-//  int  i;
-//
-//  kprintf("%s\n", "echo()");
-//
-//  i = 0;
-//  do {
-//    c = getc(CONSOLE);
-//    putc(CONSOLE, c);
-//    i += 1;
-//  } while (c != EOT);
-//
-//  kprintf("%x\n", i);
-//
-//  return(i);
-//} //----------------------------------------------------------------------
+                return(i);
+        } //----------------------------------------------------------------------
