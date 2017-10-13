@@ -5,8 +5,8 @@ MEMORY
 {
         rom (rx)  : ORIGIN = 0x00000000, /* x_INST_BASE_ADDR */
                     LENGTH = 0x00020000, /* x_INST_MEM_SZ */
-        ram (!rx) : ORIGIN = 0x00040000, /* x_DATA_BASE_ADDR */
-                    LENGTH = 0x00040000, /* x_DATA_MEM_SZ */
+        ram (!rx) : ORIGIN = 0x00080000, /* x_DATA_BASE_ADDR */
+                    LENGTH = 0x00080000, /* x_DATA_MEM_SZ */
         sdram (!rx) : ORIGIN = 0x04000000, /* x_SDRAM_BASE_ADDR */
                       LENGTH = 0x02000000, /* x_SDRAM_MEM_SZ */
         io (!rx)  : ORIGIN = 0x3c000000, /* not used, do not remove       */
@@ -43,8 +43,8 @@ SECTIONS
           _end = . ;           /* end of image constant  (from Xinu) */
        }                                   > ram
   
-       start_RAM = 0x00040000; /* x_DATA_BASE_ADDR */
-       end_RAM = 0x00040000; /* x_DATA_MEM_SZ */
+       start_RAM = 0x00080000; /* x_DATA_BASE_ADDR */
+       end_RAM = 0x00080000; /* x_DATA_MEM_SZ */
        half_RAM = (end_RAM >> 1);
        base_PT = ( start_RAM + half_RAM );
        .PT base_PT : { *(.PT) }            > ram

@@ -2723,7 +2723,7 @@ begin
       i_stage_mm  := TRUE;
       i_exception := TRUE;
     
-    elsif i_miss_pc then
+    elsif (i_miss_pc and FALSE) then    -- only MM exceptions with TLB
 
       if STATUS(STATUS_EXL) = '1' then
         i_excp_type := exTLBdblFaultIF;
@@ -2751,7 +2751,7 @@ begin
       end if;
       i_stage_mm := TRUE;
       
-    elsif (hit_pc and hit_pc_v = '0' and iaVal = '0') then -- TLBinvalid IF?
+    elsif (hit_pc and hit_pc_v = '0' and iaVal = '0' and FALSE) then -- TLBinvalid IF?
     
       i_excp_type := exTLBinvalIF;
       i_stage_mm  := FALSE;

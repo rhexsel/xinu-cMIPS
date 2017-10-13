@@ -42,3 +42,4 @@ conf.c:		$(CONFIG) Configuration
 install:	conf.h conf.c
 		cp conf.h ../include
 		cp conf.c ../system
+

@@ -40,6 +40,12 @@ extern sid32 nextsem;           /* next semaphore to use, changed RH    */
 
 extern qid32 nextqid;           /* next list in queuetab to use, changed RH*/
 
+// write an integer (hex) to VHDL simulator's standard output
+void cprint(int n) { 
+  int volatile *IO = (int *)IO_PRINT_ADDR;
+
+  *IO = n;
+}
 
 /*------------------------------------------------------------------------
  * nulluser - initialize the system and become the null process
@@ -60,7 +66,6 @@ void	nulluser(void) {
 
 	sysinit();
 	
-
 	/* Output Xinu memory layout */
 
 #if 0
@@ -139,6 +144,7 @@ static	void	sysinit(void)
 
 	// maxheap = (void *)addressp2k(MAXADDR);
 	maxheap = (void *)(MAXADDR);
+	// print(MAXADDR);
 
 	memlist.mnext = (struct memblk *)minheap;
 

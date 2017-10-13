@@ -57,9 +57,8 @@ extern	struct	dentry	devtab[]; /* one entry per device */
 #define	NPROC	     16	  	/* number of user processes		*/
 #define	NSEM	     32		/* number of semaphores			*/
 #define	IRQ_TIMER    IRQ_HW5	/* timer IRQ is wired to hardware 5	*/
-#define	IRQ_UART     IRQ_HW4	/* UART  IRQ is wired to hardware 4	*/
-#define	IRQ_ATH_MISC IRQ_HW3	/* Misc. IRQ is wired to hardware 3	*/
-#define MAXADDR      0x00080000	/* 256 KB of RAM			*/
+#define	IRQ_ATH_MISC IRQ_HW3	/* Misc. IRQ is wired to hardware 3(4)	*/
+#define MAXADDR      (x_DATA_BASE_ADDR+(x_DATA_MEM_SZ/2)) /* 256 KB of RAM */
 #define CLKFREQ      50000000	/* 50 MHz clock				*/
 #define FLASH_BASE   0xBD000000	/* Flash ROM device			*/
 

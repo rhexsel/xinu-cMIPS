@@ -42,8 +42,8 @@ package p_MEMORY is
   --  you may change the values, not names neither formatting          --
   constant x_INST_BASE_ADDR : reg32   := x"00000000";
   constant x_INST_MEM_SZ    : reg32   := x"00020000";
-  constant x_DATA_BASE_ADDR : reg32   := x"00040000";
-  constant x_DATA_MEM_SZ    : reg32   := x"00040000";
+  constant x_DATA_BASE_ADDR : reg32   := x"00080000";
+  constant x_DATA_MEM_SZ    : reg32   := x"00080000";
   constant x_IO_BASE_ADDR   : reg32   := x"3c000000";
   constant x_IO_MEM_SZ      : reg32   := x"00002000";
   constant x_IO_ADDR_RANGE  : reg32   := x"00000020";

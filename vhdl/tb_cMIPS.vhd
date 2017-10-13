@@ -947,8 +947,8 @@ architecture behavioral of busError_addr_decode is
 
   constant LO_RAM : natural := 0;
   constant HI_RAM : natural := log2_ceil(DATA_MEM_SZ-1);
-  constant r_hi   : std_logic_vector(31 downto HI_RAM+1)   := (others=>'1');
-  constant r_lo   : std_logic_vector(HI_RAM downto LO_RAM) := (others=>'0');
+  constant r_hi   : std_logic_vector(31 downto HI_RAM)   := (others=>'1');
+  constant r_lo   : std_logic_vector(HI_RAM-1 downto LO_RAM) := (others=>'0');
   constant r_mask : std_logic_vector := r_hi & r_lo;  -- 1..10..0
     
   signal in_range, io_in_range : boolean;
@@ -967,9 +967,9 @@ begin
 
   
   assert TRUE -- cpu_d_aVal = '1'
-    report  LF &
+    report  LF & LF &
     " e "  & SLV32HEX(addr) & 
-    " addr " & SLV2str(addr(15 downto 0)) & LF & 
+    " addr " & SLV2str(addr(HI_ADDR downto 0)) & LF & 
     " LO_AD " & integer'image(LO_ADDR) &
     " HI_AD " & integer'image(HI_ADDR) &
     " a_hi "    & SLV2STR(a_hi) &
@@ -980,7 +980,7 @@ begin
     " HI_RAM " & integer'image(HI_RAM) &
     " r_hi "    & SLV2STR(r_hi) &
     " r_lo "    & SLV2STR(r_lo) &
-    " r_mask "  & SLV32HEX(r_mask)
+    " r_mask "  & SLV32HEX(r_mask) & LF
     severity NOTE;
   
   assert TRUE -- cpu_d_aVal = '1' and io_busError

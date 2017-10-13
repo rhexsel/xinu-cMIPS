@@ -1,9 +1,12 @@
 /* memory.h - roundmb, truncmb, freestk */
 
+#include "cMIPS.h"
+
 #define	PAGE_SIZE	4096
 // #define MAXADDR		0x02000000	/* 160NL has 32MB RAM	*/
+
 #ifndef MAXADDR
-  #define MAXADDR		0x00040000	/* cMIPS has some RAM CHANGE */
+  #define MAXADDR (x_DATA_BASE_ADDR+(x_DATA_MEM_SZ/2)) /* cMIPS RAM  CHANGE */
 #endif
 
 /*----------------------------------------------------------------------

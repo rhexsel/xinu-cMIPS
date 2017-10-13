@@ -26,6 +26,8 @@ while [ -n "$1" ] ; do
             ;;
         -v) verbose=true
             ;;
+        -x) set -x
+            ;;
         *)  usage ; echo "   invalid option: $1" ; exit 1
             ;;
     esac
@@ -38,13 +40,13 @@ if [ ! -v tree ] ; then
   # you must set the location of the cMIPS root directory in the variable tree
   # tree=${HOME}/cMIPS
   # tree="$(dirname "$(pwd)")"
-  export tree="$(echo $PWD | sed -e 's:\(/.*/xinu-cMIPS\)/.*:\1:')"
+  export tree="$(echo $PWD | sed -e 's:\(/.*/cMIPS\)/.*:\1:')"
 fi
 
 bin="${tree}"/bin
 include="${tree}"/include
 srcVHDL="${tree}"/vhdl
-
+compile="${tree}"/xinu/compile
 
 dfn="${srcVHDL}"/packageMemory.vhd
 
@@ -55,6 +57,9 @@ hdr="${include}"/cMIPS.h
 # assembly version
 asm="${include}"/cMIPS.s
 
+# xinu linker memory map
+xin="${compile}"/ld.script
+
 
 VARIABLES="x_INST_BASE_ADDR x_INST_MEM_SZ x_DATA_BASE_ADDR x_DATA_MEM_SZ x_IO_BASE_ADDR x_IO_MEM_SZ x_IO_ADDR_RANGE"
 
@@ -63,6 +68,7 @@ EXCEPTION_VECTORS="x_EXCEPTION_0000 x_EXCEPTION_0100 x_EXCEPTION_0180 x_EXCEPTIO
 if [ "${dfn}" -nt "${lnk}" ] ||\
    [ "${dfn}" -nt "${asm}" ] ||\
    [ "${dfn}" -nt "${hdr}" ] ||\
+   [ "${dfn}" -nt "${xin}" ] ||\
    [ ! -f ${srcVHDL}/.last_include  ] ;
 then
 
@@ -87,12 +93,49 @@ then
   done
 
   # set up address for base of Page Table
+  VAR=x_DATA_BASE_ADDR
+  NEW=$(egrep -h ${VAR} "${dfn}" | sed -n -e '/reg32/s/.*x"\(.*\)".*/\1/p')
+  OLD=$(egrep -h ${VAR} "${lnk}" | sed -n -e 's/.* = 0x\(.*\); .*/\1/p')
+  # echo -n -e "$NEW $OLD\n"
+  if [ -n "$OLD" ] ; then
+     sed -i -e '/'$VAR'/s/'$OLD'/'$NEW'/' "${lnk}"
+  fi
+
+  # set up address for base of Page Table
   VAR=x_DATA_MEM_SZ
   NEW=$(egrep -h ${VAR} "${dfn}" | sed -n -e '/reg32/s/.*x"\(.*\)".*/\1/p')
   OLD=$(egrep -h ${VAR} "${lnk}" | sed -n -e 's/.* = 0x\(.*\); .*/\1/p')
   # echo -n -e "$NEW $OLD\n"
   if [ -n "$OLD" ] ; then
      sed -i -e '/'$VAR'/s/'$OLD'/'$NEW'/' "${lnk}"
+  fi
+
+  cp "${xin}" "${xin}"~
+  for VAR in $VARIABLES ; do
+    NEW=$(egrep -h ${VAR} "${dfn}" | sed -n -e '/reg32/s/.*x"\(.*\)".*/\1/p')
+    OLD=$(egrep -h ${VAR} "${xin}" | sed -n -e 's/.* = 0x\(.*\), .*/\1/p')
+    # echo -n -e "$NEW $OLD\n"
+    if [ -n "$OLD" ] ; then
+	sed -i -e '/'$VAR'/s/'$OLD'/'$NEW'/' "${xin}"
+    fi
+  done
+
+  # set up address for base of Page Table
+  VAR=x_DATA_BASE_ADDR
+  NEW=$(egrep -h ${VAR} "${dfn}" | sed -n -e '/reg32/s/.*x"\(.*\)".*/\1/p')
+  OLD=$(egrep -h ${VAR} "${xin}" | sed -n -e 's/.* = 0x\([^ ]*\); .*/\1/p')
+  # echo -n -e "$NEW $OLD\n"
+  if [ -n "$OLD" ] ; then
+     sed -i -e '/'$VAR'/s/'$OLD'/'$NEW'/' "${xin}"
+  fi
+
+  # set up address for base of Page Table
+  VAR=x_DATA_MEM_SZ
+  NEW=$(egrep -h ${VAR} "${dfn}" | sed -n -e '/reg32/s/.*x"\(.*\)".*/\1/p')
+  OLD=$(egrep -h ${VAR} "${xin}" | sed -n -e 's/.* = 0x\(.*\); .*/\1/p')
+  # echo -n -e "$NEW $OLD\n"
+  if [ -n "$OLD" ] ; then
+     sed -i -e '/'$VAR'/s/'$OLD'/'$NEW'/' "${xin}"
   fi
 
   cp "${hdr}" "${hdr}"~

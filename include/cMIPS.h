@@ -1,7 +1,7 @@
 
 #define x_INST_BASE_ADDR  0x00000000
-#define x_DATA_BASE_ADDR  0x00040000
-#define x_DATA_MEM_SZ     0x00040000
+#define x_DATA_BASE_ADDR  0x00080000
+#define x_DATA_MEM_SZ     0x00080000
 #define x_SDRAM_BASE_ADDR 0x04000000
 #define x_SDRAM_MEM_SZ    0x02000000
 #define x_IO_BASE_ADDR    0x3c000000
@@ -87,14 +87,3 @@ extern int  SWget(void);
   #define l_BLUE  0x1
 #endif
 
-// struct to access the cache system statistics "peripheral"
-typedef struct sStats {
-  int dc_ref;      // data cache references
-  int dc_rd_hit;   // data cache read-hits
-  int dc_wr_hit;   // data cache write-hits
-  int dc_flush;    // data cache (write-back) flushes of dirty blocks
-  int ic_ref;      // instruction cache references
-  int ic_hit;      // instruction cache hits
-} sStats;
-
-extern void readStats(sStats *);

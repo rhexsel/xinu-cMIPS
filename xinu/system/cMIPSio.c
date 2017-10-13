@@ -13,6 +13,8 @@
 
 #if FOR_SIMULATION
 
+
+
 //=======================================================================
 // simulator's STD_INPUT and STD_OUTPUT
 //=======================================================================
@@ -83,6 +85,17 @@ void dumpRAM(void) {
 //=======================================================================
 // system statistics -- read system counters
 //=======================================================================
+
+// struct to access the cache system statistics "peripheral"
+typedef struct sStats {
+  int dc_ref;      // data cache references
+  int dc_rd_hit;   // data cache read-hits
+  int dc_wr_hit;   // data cache write-hits
+  int dc_flush;    // data cache (write-back) flushes of dirty blocks
+  int ic_ref;      // instruction cache references
+  int ic_hit;      // instruction cache hits
+} sStats;
+
 void readStats(sStats *s) {
 #if 0
   int *IO = (int *)IO_STATS_ADDR;

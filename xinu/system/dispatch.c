@@ -40,6 +40,9 @@ void	dispatch(
 				/*  contains saved status		*/
 	)
 {
+
+#if 0
+
 	intmask	mask;		/* saved interrupt status		*/
 	int32	irqcode = 0;	/* code for interrupt			*/
 	int32	irqnum = -1;	/* interrupt number			*/
@@ -62,7 +65,6 @@ void	dispatch(
 	kprintf("Xinu Interrupt %d caught, %s\r\n", 
 			irqnum, interrupts[irqnum]);
 
-#if 0
 	// this is the wifi-Ethernet device
 	if (IRQ_ATH_MISC == irqnum) {
 		uint32 *miscStat = (uint32 *)RST_MISC_INTERRUPT_STATUS;
@@ -73,7 +75,6 @@ void	dispatch(
 			irqcode = irqcode >> 1;
 		}
 	}
-#endif
 
 	/* Check for registered interrupt handler */
 
@@ -94,6 +95,9 @@ void	dispatch(
 	exlset();		/* Set system-wide exception bit   */
 
 	restore(mask);
+
+#endif
+
 }
 
 /*------------------------------------------------------------------------

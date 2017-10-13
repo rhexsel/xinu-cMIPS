@@ -53,7 +53,7 @@ elf:  xinu.elf prog.bin data.bin
 	${OBJDUMP} -z -D -EL ${reg_names} --show-raw-insn \
 		--section .text  --section .excp --section .data \
 		--section .sdata --section .sbss --section .bss \
-		--section .rodata xinu.elf >ELF
+		--section .rodata --section .PT xinu.elf >ELF
 
 prog.bin: xinu.elf data.bin 
 	${OBJCOPY} -S -j .text -O binary xinu.elf prog.bin
@@ -62,7 +62,7 @@ prog.bin: xinu.elf data.bin
 data.bin: xinu.elf
 	${OBJCOPY} -S  -j .excp -j .rodata -j .rodata1 \
 		-j .lit8 -j .lit4 -j .data   -j .data1 -j .sdata \
-		-j .sbss -j .bss -O binary xinu.elf data.bin
+		-j .sbss -j .bss  -j .PT -O binary xinu.elf data.bin
 
 xinu.boot: xinu.bin ${MKIMAGE}
 	${MKIMAGE} ${UBOOTOPTS} -d xinu.bin $@

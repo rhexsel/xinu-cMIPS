@@ -45,7 +45,7 @@ _start:
 	sw	zero, flash_size(zero)
 
 	/* Clear Xinu-defined trap and interrupt vectors */
-
+	// these are not used, there is no memory allocated to vectors
 	# la	a0, IRQ_ADDR      ## invalid addresses for cMIPS
 	# la	a1, IRQVEC_END
 	# jal	memzero
@@ -54,8 +54,8 @@ _start:
 	# jal	memzero
 
 	
-	/* Copy low-level interrupt dispatcher to reserved location.	*/
-
+	/* Copy low-level interrupt dispatcher to reserved location.	*
+	// these are not used, there is no memory allocated to vectors
 	# la	a0, IRQ_ADDR		/* Reserved vector location	*/
 	# la	a1, intdispatch		/* Start of dispatch code	*/
 	# lw	v0, 0(a1)
@@ -573,16 +573,202 @@ _d_mse: jr    ra
         ##===============================================================
         ## reserve first 1024 bytes for the exception/interrupt Vectors
         ##
-	.global _EXCP_VEC, _endEXCP_VEC
-	.global exceptionVector
-	.global interruptVector
-        .section .excp,"aw",@progbits
+	## .global _EXCP_VEC, _endEXCP_VEC
+	## .global exceptionVector
+	## .global interruptVector
+        ## .section .excp,"aw",@progbits
 
-_EXCP_VEC:	
-TRAPVEC_ADDR:
-exceptionVector: .skip 0x0080,0
+#_EXCP_VEC:	
+#TRAPVEC_ADDR:
+#exceptionVector: .skip 0x0080,0
+#
+#interruptVector: .skip 0x0040,0
+#IRQVEC_END:
+#_endEXCP_VEC:
 
-interruptVector: .skip 0x0040,0
-IRQVEC_END:
-_endEXCP_VEC:
 
+        #================================================================
+        # read the page table:
+        # int PT_read(void *V_addr, int component)
+        #   component is in {0=entrylo0, 1-int0, 2=entrylo1, 3=int1}
+        .text
+        .global PT_read
+
+        .set noreorder
+        .ent PT_read
+PT_read:
+        srl  a0, a0, 9        # (_PT + (V_addr >>13)*16)
+        la   v0, PTbase
+        add  a0, v0, a0
+        andi a1, a1, 0x0003   # make sure component is in range
+        sll  a1, a1, 2        # component * 4
+        add  a0, a0, a1      # (_PT + (V_addr >>13)*16).component
+        jr   ra
+        lw   v0, 0(a0)        # return PT[V_addr].component
+        .end PT_read
+        ##---------------------------------------------------------------
+
+
+         #================================================================
+        # update/modify the page table:
+        # void PT_update(void *V_addr, int component, int new_value)
+        #   component is in {0=entrylo0, 1-int0, 2=entrylo1, 3=int1}
+        .text
+        .global PT_update
+
+        .set noreorder
+        .ent PT_update
+PT_update:
+        srl  a0, a0, 9        # (_PT + (V_addr >>13)*16)
+        la   v0, PTbase
+        add  a0, v0, a0
+        andi a1, a1, 0x0003   # make sure component is in range
+        sll  a1, a1, 2        # component * 4
+        add  a0, a0, a1      # (_PT + (V_addr >>13)*16).component
+        jr   ra
+        sw   a2, 0(a0)        # write to PT[V_addr].component
+        .end PT_update
+        ##---------------------------------------------------------------
+
+
+
+       ##===============================================================
+        ## Page Table
+        ##
+        ## See EntryLo, pg 63
+        ##
+        ## intLo0 and intLo1 are:
+        ## nil_31..6 Modified_5 Used_4  Writable_3  eXecutable_2 Status_1,0
+        ## Status: 00=unmapped, 01=mapped, 10=in_secondary_storage, 11=locked
+        ##
+        .section .PT,"aw",@progbits
+        .align 4
+        .global _PT
+
+        ## ( ( (x_INST_BASE_ADDR + n*4096) >>12 )<<6 ) || 0b000011  d,v,g
+        ##
+        ## ROM mappings
+        ##
+        ## mapped pages:   intLo{01} = U=M=W=0, X=1, S=01 = 5
+        ## UNmapped pages: intLo{01} = U=M=W=0, X=1, S=00 = 4
+        ##
+_PT:    .org (_PT + (x_INST_BASE_ADDR >>13)*16)
+
+        # PT[0], ROM
+PTbase: .word  ( (x_INST_BASE_ADDR +  0*4096) >>6) | 0b000011  
+        .word 0x00000005
+        .word  ( (x_INST_BASE_ADDR +  1*4096) >>6) | 0b000011  
+        .word 0x00000005
+
+        # PT[1]
+        .word  ( (x_INST_BASE_ADDR +  2*4096) >>6) | 0b000011  
+        .word 0x00000005
+        .word  ( (x_INST_BASE_ADDR +  3*4096) >>6) | 0b000011  
+        .word 0x00000005
+
+        # PT[2] -- not mapped for simulation
+        .word  ( (x_INST_BASE_ADDR +  4*4096) >>6) | 0b000001  
+        .word 0x00000004
+        .word  ( (x_INST_BASE_ADDR +  5*4096) >>6) | 0b000001  
+        .word 0x00000004
+
+        # PT[3] -- not mapped for simulation
+        .word  ( (x_INST_BASE_ADDR +  6*4096) >>6) | 0b000001  
+        .word 0x00000004
+        .word  ( (x_INST_BASE_ADDR +  7*4096) >>6) | 0b000001  
+        .word 0x00000004
+
+        # PT[4] -- not mapped for simulation
+        .word  ( (x_INST_BASE_ADDR +  8*4096) >>6) | 0b000001
+        .word 0x00000004
+        .word  ( (x_INST_BASE_ADDR +  9*4096) >>6) | 0b000001
+        .word 0x00000004
+
+        # PT[5] -- not mapped for simulation
+        .word  ( (x_INST_BASE_ADDR + 10*4096) >>6) | 0b000001
+        .word 0x00000004
+        .word  ( (x_INST_BASE_ADDR + 11*4096) >>6) | 0b000001
+        .word 0x00000004
+
+        # PT[6] -- not mapped for simulation
+        .word  ( (x_INST_BASE_ADDR + 12*4096) >>6) | 0b000001
+        .word 0x00000004
+        .word  ( (x_INST_BASE_ADDR + 13*4096) >>6) | 0b000001
+        .word 0x00000004
+
+        # PT[7] -- not mapped for simulation
+        .word  ( (x_INST_BASE_ADDR + 14*4096) >>6) | 0b000001
+        .word 0x00000004
+        .word  ( (x_INST_BASE_ADDR + 15*4096) >>6) | 0b000001
+        .word 0x00000004
+
+        ## remaining ROM entries are invalid and unmapped (0 filled by AS)
+
+
+
+        ##
+        ## RAM mappings
+        ##
+        ## mapped pages:       intLo{01} = U=M=0, W=1, X=0, S=01 = 9
+        ## UNmapped pages:     intLo{01} = U=M=0, W=1, X=0, S=00 = 8
+        ## mapped pages, disk: intLo{01} = U=M=0, W=1, X=0, S=10 = a
+        ##
+        .org (_PT + (x_DATA_BASE_ADDR >>13)*16)
+
+        ## ( ( (x_DATA_BASE_ADDR + n*4096) >>12 )<<6 ) || 0b000111  d,v,g
+
+        # PT[ram+0], RAM
+        .word  ( (x_DATA_BASE_ADDR +  0*4096) >>6) | 0b000111  
+        .word 0x00000009
+        .word  ( (x_DATA_BASE_ADDR +  1*4096) >>6) | 0b000111  
+        .word 0x00000009
+
+        # PT[ram+1]
+        .word  ( (x_DATA_BASE_ADDR +  2*4096) >>6) | 0b000111  
+        .word 0x00000009
+        .word  ( (x_DATA_BASE_ADDR +  3*4096) >>6) | 0b000111  
+        .word 0x00000009
+
+        # PT[ram+2]
+        .word  ( (x_DATA_BASE_ADDR +  4*4096) >>6) | 0b000111  
+        .word 0x00000009
+        .word  ( (x_DATA_BASE_ADDR +  5*4096) >>6) | 0b000111  
+        .word 0x00000009
+
+        # PT[ram+3]
+        .word  ( (x_DATA_BASE_ADDR +  6*4096) >>6) | 0b000111  
+        .word 0x00000009
+        .word  ( (x_DATA_BASE_ADDR +  7*4096) >>6) | 0b000111  
+        .word 0x00000009
+
+        # PT[ram+4]
+        .word  ( (x_DATA_BASE_ADDR +  8*4096) >>6) | 0b000111  
+        .word 0x00000009
+        .word  ( (x_DATA_BASE_ADDR +  9*4096) >>6) | 0b000111  
+        .word 0x00000009
+
+        # PT[ram+5]
+        .word  ( (x_DATA_BASE_ADDR + 10*4096) >>6) | 0b000111  
+        .word 0x00000009
+        .word  ( (x_DATA_BASE_ADDR + 11*4096) >>6) | 0b000111  
+        .word 0x00000009
+
+        # PT[ram+6]
+        .word  ( (x_DATA_BASE_ADDR + 12*4096) >>6) | 0b000111   # 000001
+        .word 0x00000009   # a
+        .word  ( (x_DATA_BASE_ADDR + 13*4096) >>6) | 0b000111   # 000001
+        .word 0x00000009   # a
+
+        # PT[ram+7]
+        .word  ( (x_DATA_BASE_ADDR + 14*4096) >>6) | 0b000111  
+        .word 0x00000009
+        .word  ( (x_DATA_BASE_ADDR + 15*4096) >>6) | 0b000111  
+        .word 0x00000009
+
+
+        ## remaining RAM entries are invalid and unmapped (0 filled by AS)
+        # .space (5*4096 - 8*16), 0
+
+_endPT:
+
+	
