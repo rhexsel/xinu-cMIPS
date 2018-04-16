@@ -333,7 +333,7 @@ save:	addiu   sp, sp, -IRQREC_SIZE    /* Allocate space on stack      */
 dispatch:
 	andi k0, k0, M_CauseIM   # Keep only IP bits from Cause
         and  k0, k0, k1          # and mask with STATUS's IM bits 
-        srl  k0, k0, 10          # keep only 3 MS bits of IP (irq7..5)
+        srl  k0, k0, 9           # keep only 3 MS bits of IP (irq7..5)
         lui  k1, %hi(handlers_tbl) # plus displacement in j-table of 8 bytes
         ori  k1, k1, %lo(handlers_tbl)
         add  k1, k1, k0
